@@ -1,0 +1,8 @@
+[[inputs]]
+name = "build_tool"
+options = ["rustc", "cargo"]
+default = "cargo"
+
+[[inputs]]
+name = "target_path"
+default = "target"
