@@ -39,8 +39,13 @@ pub fn get_args() -> Args {
     Args::parse()
 }
 
-#[test]
-fn verify_args() {
-    use clap::CommandFactory;
-    Args::command().debug_assert()
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_args() {
+        use clap::CommandFactory;
+        Args::command().debug_assert()
+    }
 }
