@@ -1,18 +1,20 @@
 use clap::Parser;
 use std::path::PathBuf;
 
+const CONFIG_PATH: &str = "skelly.toml";
+
 #[derive(Debug, Clone)]
 pub struct Input(String, String);
 
-fn check_skeleton_path(value: &str) -> Result<PathBuf, String> {
+fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);
 
     if !path.is_dir() {
         return Err(format!("'{value}' is not a directory."));
     }
 
-    if !path.join("skelly.toml").exists() {
-        return Err("skelly.toml not exists.".to_string());
+    if !path.join(CONFIG_PATH).exists() {
+        return Err(format!("{CONFIG_PATH} not exists."));
     }
 
     path.canonicalize().or(Err(format!("unable to resolve path '{value}'.")))
@@ -26,7 +28,7 @@ fn parse_input(value: &str) -> Result<Input, String> {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    #[arg(value_parser = check_skeleton_path)]
+    #[arg(value_parser = parse_skeleton_path)]
     pub skeleton_path: PathBuf,
 
     #[arg(value_parser = parse_input)]
@@ -35,4 +37,10 @@ pub struct Args {
 
 pub fn get_args() -> Args {
     Args::parse()
+}
+
+#[test]
+fn verify_args() {
+    use clap::CommandFactory;
+    Args::command().debug_assert()
 }
