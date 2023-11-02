@@ -1,20 +1,14 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-const CONFIG_PATH: &str = "skelly.toml";
-
 #[derive(Debug, Clone)]
-pub struct Input(String, String);
+pub struct Input(pub String, pub String);
 
 fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);
 
     if !path.is_dir() {
         return Err(format!("'{value}' is not a directory."));
-    }
-
-    if !path.join(CONFIG_PATH).exists() {
-        return Err(format!("{CONFIG_PATH} not exists."));
     }
 
     path.canonicalize().or(Err(format!("unable to resolve path '{value}'.")))
