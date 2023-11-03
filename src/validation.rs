@@ -5,15 +5,19 @@ use std::collections::HashMap;
 pub struct UserInput(pub String, pub String);
 
 #[derive(thiserror::Error, PartialEq, Debug)]
-#[error("missing input '{0}'")]
-pub struct MissingInputError(String);
+pub enum Error {
+    #[error("missing input '{0}'")]
+    MissingInput(String),
+    #[error("invalid option {1} to input '{0}'")]
+    InvalidOption(String, String),
+}
 
 pub fn validate_inputs(
     user_inputs: &Vec<UserInput>,
     input_map: &InputMap,
-) -> Result<Vec<UserInput>, Vec<MissingInputError>> {
+) -> Result<Vec<UserInput>, Vec<Error>> {
     let mut inputs: HashMap<String, String> = HashMap::new();
-    let mut errors: Vec<MissingInputError> = vec![];
+    let mut errors: Vec<Error> = vec![];
 
     for im in input_map.values() {
         if let Some(value) = &im.default {
@@ -22,14 +26,23 @@ pub fn validate_inputs(
     }
 
     for ui in user_inputs {
-        if input_map.contains_key(&ui.0) {
+        if !input_map.contains_key(&ui.0) {
+            continue;
+        }
+        let options = input_map
+            .get(&ui.0)
+            .and_then(|i| i.options.to_owned())
+            .unwrap_or(vec![]);
+        if options.is_empty() || options.contains(&ui.1) {
             inputs.insert(ui.0.to_owned(), ui.1.to_owned());
+        } else {
+            errors.push(Error::InvalidOption(ui.0.to_owned(), ui.1.to_owned()));
         }
     }
 
     for im in input_map.values() {
         if !inputs.contains_key(&im.name) {
-            errors.push(MissingInputError(im.name.to_owned()));
+            errors.push(Error::MissingInput(im.name.to_owned()));
         }
     }
 
@@ -103,6 +116,29 @@ mod tests {
     }
 
     #[test]
+    fn should_ignore_empty_options_list() {
+        let input_map = InputMap::from_iter([(
+            "test".to_owned(),
+            Input {
+                name: "test".to_owned(),
+                default: None,
+                options: Some(vec![]),
+            },
+        )]);
+
+        let result = validate_inputs(
+            &vec![UserInput("test".to_owned(), "invalid".to_owned())],
+            &input_map,
+        );
+        println!("{:?}", result);
+
+        assert_eq!(
+            result,
+            Ok(vec![UserInput("test".to_owned(), "invalid".to_owned())]),
+        );
+    }
+
+    #[test]
     fn should_return_error_when_missing_input() {
         let input_map = InputMap::from_iter([(
             "test".to_owned(),
@@ -112,6 +148,32 @@ mod tests {
         let result = validate_inputs(&vec![], &input_map);
         println!("{:?}", result);
 
-        assert_eq!(result, Err(vec![MissingInputError("test".to_owned())]),);
+        assert_eq!(result, Err(vec![Error::MissingInput("test".to_owned())]),);
+    }
+
+    #[test]
+    fn should_return_error_when_input_is_not_a_valid_option() {
+        let input_map = InputMap::from_iter([(
+            "test".to_owned(),
+            Input {
+                name: "test".to_owned(),
+                default: None,
+                options: Some(vec!["ok".to_owned(), "fail".to_owned()]),
+            },
+        )]);
+
+        let result = validate_inputs(
+            &vec![UserInput("test".to_owned(), "invalid".to_owned())],
+            &input_map,
+        );
+        println!("{:?}", result);
+
+        assert_eq!(
+            result,
+            Err(vec![
+                Error::InvalidOption("test".to_owned(), "invalid".to_owned()),
+                Error::MissingInput("test".to_owned())
+            ]),
+        );
     }
 }
