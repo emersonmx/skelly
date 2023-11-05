@@ -46,7 +46,7 @@ pub fn validate_inputs(
     }
 
     if errors.is_empty() {
-        Ok(inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect())
+        Ok(inputs.into_iter().collect())
     } else {
         Err(errors)
     }
