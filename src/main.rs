@@ -2,7 +2,7 @@ use std::fs;
 
 use skelly::{
     config::{to_input_map, Config},
-    renderer::{self, render},
+    renderer::render,
     validation::{validate_inputs, UserInput},
 };
 use walkdir::WalkDir;
@@ -19,11 +19,8 @@ fn main() {
         Config::from_path(&args.skeleton_path.join(CONFIG_FILENAME)).unwrap();
 
     // Validate inputs
-    let user_inputs: Vec<UserInput> = args
-        .inputs
-        .iter()
-        .map(|i| UserInput(i.0.to_owned(), i.1.to_owned()))
-        .collect();
+    let user_inputs: Vec<UserInput> =
+        args.inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect();
     let input_map = to_input_map(config.inputs);
     let inputs = validate_inputs(&user_inputs, &input_map);
 
@@ -38,13 +35,7 @@ fn main() {
             }
 
             let content = fs::read_to_string(p).unwrap();
-            let ri = inputs
-                .as_ref()
-                .unwrap()
-                .iter()
-                .map(|i| renderer::Input(i.0.to_owned(), i.1.to_owned()))
-                .collect();
-            let r = render(&content, &ri);
+            let r = render(&content, inputs.as_ref().unwrap());
             print!("{}", r.unwrap());
         }
     }

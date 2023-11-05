@@ -1,8 +1,7 @@
 use crate::config::InputMap;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
-pub struct UserInput(pub String, pub String);
+pub type UserInput = (String, String);
 
 #[derive(thiserror::Error, PartialEq, Debug)]
 pub enum Error {
@@ -47,10 +46,7 @@ pub fn validate_inputs(
     }
 
     if errors.is_empty() {
-        Ok(inputs
-            .iter()
-            .map(|i| UserInput(i.0.to_owned(), i.1.to_owned()))
-            .collect())
+        Ok(inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect())
     } else {
         Err(errors)
     }
@@ -79,10 +75,7 @@ mod tests {
 
         let result = validate_inputs(&vec![], &input_map);
 
-        assert_eq!(
-            result,
-            Ok(vec![UserInput("test".to_owned(), "ok".to_owned())])
-        );
+        assert_eq!(result, Ok(vec![("test".to_owned(), "ok".to_owned())]));
     }
 
     #[test]
@@ -90,14 +83,11 @@ mod tests {
         let input_map = make_input_map();
 
         let result = validate_inputs(
-            &vec![UserInput("test".to_owned(), "updated".to_owned())],
+            &vec![("test".to_owned(), "updated".to_owned())],
             &input_map,
         );
 
-        assert_eq!(
-            result,
-            Ok(vec![UserInput("test".to_owned(), "updated".to_owned())])
-        );
+        assert_eq!(result, Ok(vec![("test".to_owned(), "updated".to_owned())]));
     }
 
     #[test]
@@ -105,14 +95,11 @@ mod tests {
         let input_map = make_input_map();
 
         let result = validate_inputs(
-            &vec![UserInput("unknown".to_owned(), "ignore".to_owned())],
+            &vec![("unknown".to_owned(), "ignore".to_owned())],
             &input_map,
         );
 
-        assert_eq!(
-            result,
-            Ok(vec![UserInput("test".to_owned(), "ok".to_owned())])
-        );
+        assert_eq!(result, Ok(vec![("test".to_owned(), "ok".to_owned())]));
     }
 
     #[test]
@@ -127,15 +114,12 @@ mod tests {
         )]);
 
         let result = validate_inputs(
-            &vec![UserInput("test".to_owned(), "invalid".to_owned())],
+            &vec![("test".to_owned(), "invalid".to_owned())],
             &input_map,
         );
         println!("{:?}", result);
 
-        assert_eq!(
-            result,
-            Ok(vec![UserInput("test".to_owned(), "invalid".to_owned())]),
-        );
+        assert_eq!(result, Ok(vec![("test".to_owned(), "invalid".to_owned())]),);
     }
 
     #[test]
@@ -163,7 +147,7 @@ mod tests {
         )]);
 
         let result = validate_inputs(
-            &vec![UserInput("test".to_owned(), "invalid".to_owned())],
+            &vec![("test".to_owned(), "invalid".to_owned())],
             &input_map,
         );
         println!("{:?}", result);

@@ -1,8 +1,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone)]
-pub struct Input(pub String, pub String);
+pub type Input = (String, String);
 
 fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);
@@ -16,7 +15,7 @@ fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
 
 fn parse_input(value: &str) -> Result<Input, String> {
     let (name, value) = value.split_once("=").ok_or("missing '=' in input.")?;
-    Ok(Input(name.to_owned(), value.to_owned()))
+    Ok((name.to_owned(), value.to_owned()))
 }
 
 #[derive(Parser, Debug)]
