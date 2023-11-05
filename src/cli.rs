@@ -14,7 +14,7 @@ fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
 }
 
 fn parse_input(value: &str) -> Result<Input, String> {
-    let (name, value) = value.split_once("=").ok_or("missing '=' in input.")?;
+    let (name, value) = value.split_once('=').ok_or("missing '=' in input.")?;
     Ok((name.to_owned(), value.to_owned()))
 }
 

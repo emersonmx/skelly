@@ -26,7 +26,7 @@ fn main() {
     let template_path = args.skeleton_path.join(SKELETON_DIRECTORY_NAME);
     let walker = WalkDir::new(&template_path).min_depth(1).into_iter();
     for entry in walker {
-        let path = entry.as_ref().and_then(|e| Ok(e.path()));
+        let path = entry.as_ref().map(|e| e.path());
         if let Ok(p) = path {
             if p.is_dir() {
                 continue;

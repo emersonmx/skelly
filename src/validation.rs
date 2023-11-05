@@ -31,7 +31,7 @@ pub fn validate_inputs(
         let options = input_map
             .get(&ui.0)
             .and_then(|i| i.options.to_owned())
-            .unwrap_or(vec![]);
+            .unwrap_or_default();
         if options.is_empty() || options.contains(&ui.1) {
             inputs.insert(ui.0.to_owned(), ui.1.to_owned());
         } else {
