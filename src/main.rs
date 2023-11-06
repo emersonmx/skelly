@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, str::FromStr};
 
 use skelly::{
     config::{to_input_map, Config},
@@ -15,8 +15,9 @@ fn main() {
     let args = cli::get_args();
 
     // Read skelly.toml
-    let config =
-        Config::from_path(&args.skeleton_path.join(CONFIG_FILENAME)).unwrap();
+    let skelly_path = args.skeleton_path.join(CONFIG_FILENAME);
+    let skelly_content = fs::read_to_string(skelly_path).unwrap();
+    let config = Config::from_str(&skelly_content).unwrap();
 
     // Validate inputs
     let input_map = to_input_map(config.inputs);
@@ -34,7 +35,10 @@ fn main() {
 
             let content = fs::read_to_string(p).unwrap();
             let r = render(&content, inputs.as_ref().unwrap());
+            let relative_path_raw = p.strip_prefix(&template_path);
+            let relative_path = render(relative_path_raw.unwrap().to_str().unwrap(), inputs.as_ref().unwrap());
             print!("{}", r.unwrap());
+            println!("{}", relative_path.unwrap());
         }
     }
 

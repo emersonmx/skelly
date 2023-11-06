@@ -1,8 +1,10 @@
 use tera::{Context, Tera};
 
 #[derive(thiserror::Error, PartialEq, Debug)]
-#[error("Unable to render. Error: {0}")]
-pub struct Error(pub String);
+pub enum Error {
+    #[error("Unable to render. Error: {0}")]
+    Unknown(String),
+}
 
 pub fn render(
     s: &str,
@@ -14,6 +16,6 @@ pub fn render(
     }
     match Tera::one_off(s, &context, true) {
         Ok(r) => Ok(r),
-        Err(e) => Err(Error(e.to_string())),
+        Err(e) => Err(Error::Unknown(e.to_string())),
     }
 }

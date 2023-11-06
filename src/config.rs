@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::Path, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Unable to read")]
-    UnableToRead,
     #[error("Unable to parse")]
     UnableToParse,
 }
@@ -38,10 +36,5 @@ impl FromStr for Config {
 impl Config {
     pub fn new(inputs: Vec<Input>) -> Self {
         Self { inputs }
-    }
-
-    pub fn from_path(path: &Path) -> Result<Self, Error> {
-        let content = fs::read_to_string(path).or(Err(Error::UnableToRead))?;
-        Self::from_str(&content)
     }
 }
