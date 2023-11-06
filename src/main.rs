@@ -1,16 +1,16 @@
-use std::{fs, str::FromStr};
-
 use skelly::{
     config::{to_input_map, Config},
     renderer::render,
     validation::validate_inputs,
 };
+use std::{fs, str::FromStr};
 use walkdir::WalkDir;
+
+mod cli;
 
 pub const CONFIG_FILENAME: &str = "skelly.toml";
 pub const SKELETON_DIRECTORY_NAME: &str = "skeleton";
 
-mod cli;
 fn main() {
     let args = cli::get_args();
 
@@ -36,7 +36,10 @@ fn main() {
             let content = fs::read_to_string(p).unwrap();
             let r = render(&content, inputs.as_ref().unwrap());
             let relative_path_raw = p.strip_prefix(&template_path);
-            let relative_path = render(relative_path_raw.unwrap().to_str().unwrap(), inputs.as_ref().unwrap());
+            let relative_path = render(
+                relative_path_raw.unwrap().to_str().unwrap(),
+                inputs.as_ref().unwrap(),
+            );
             print!("{}", r.unwrap());
             println!("{}", relative_path.unwrap());
         }
