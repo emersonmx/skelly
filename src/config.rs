@@ -7,7 +7,7 @@ pub enum Error {
     UnableToParse,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Input {
     pub name: String,
     pub default: Option<String>,
@@ -20,7 +20,7 @@ pub fn to_input_map(inputs: Vec<Input>) -> InputMap {
     inputs.iter().map(|i| (i.name.to_owned(), i.to_owned())).collect()
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub inputs: Vec<Input>,
 }
@@ -36,5 +36,30 @@ impl FromStr for Config {
 impl Config {
     pub fn new(inputs: Vec<Input>) -> Self {
         Self { inputs }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_parse_from_string() {
+        let config = Config::from_str(
+            r#"
+            [[inputs]]
+            name = "example"
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            config,
+            Config::new(vec![Input {
+                name: "example".to_owned(),
+                default: None,
+                options: None,
+            }]),
+        );
     }
 }
