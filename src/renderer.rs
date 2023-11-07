@@ -3,8 +3,8 @@ use tera::{Context, Tera};
 
 #[derive(thiserror::Error, PartialEq, Debug)]
 pub enum Error {
-    #[error("Unable to render. Error: {0}")]
-    Unknown(String),
+    #[error("Failed to render")]
+    FailedToRender,
 }
 
 pub fn render(
@@ -19,6 +19,35 @@ pub fn render(
 
     match Tera::one_off(template, &context, true) {
         Ok(r) => Ok(r),
-        Err(e) => Err(Error::Unknown(e.to_string())),
+        Err(_) => Err(Error::FailedToRender),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_return_same() {
+        let result = render("test", &vec![]);
+
+        assert_eq!("test", result.unwrap());
+    }
+
+    #[test]
+    fn should_render_with_input() {
+        let result = render(
+            "Hello {{ skelly.name }}",
+            &vec![("name".to_owned(), "John".to_owned())],
+        );
+
+        assert_eq!("Hello John", result.unwrap());
+    }
+
+    #[test]
+    fn should_error_when_missing_input() {
+        let result = render("Hello {{ skelly.name }}", &vec![]);
+
+        assert_eq!(result, Err(Error::FailedToRender));
     }
 }
