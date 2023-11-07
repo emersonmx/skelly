@@ -117,7 +117,6 @@ mod tests {
             &vec![("test".to_owned(), "invalid".to_owned())],
             &input_map,
         );
-        println!("{:?}", result);
 
         assert_eq!(result, Ok(vec![("test".to_owned(), "invalid".to_owned())]),);
     }
@@ -130,7 +129,6 @@ mod tests {
         )]);
 
         let result = validate_inputs(&vec![], &input_map);
-        println!("{:?}", result);
 
         assert_eq!(result, Err(vec![Error::MissingInput("test".to_owned())]),);
     }
@@ -150,7 +148,6 @@ mod tests {
             &vec![("test".to_owned(), "invalid".to_owned())],
             &input_map,
         );
-        println!("{:?}", result);
 
         assert_eq!(
             result,
