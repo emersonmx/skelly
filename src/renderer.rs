@@ -9,7 +9,7 @@ pub enum Error {
 
 pub fn render(
     template: &str,
-    inputs: &Vec<(String, String)>,
+    inputs: &[(String, String)],
 ) -> Result<String, Error> {
     let data: HashMap<String, String> =
         inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect();
