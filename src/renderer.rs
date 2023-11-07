@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use tera::{Context, Tera};
 
 #[derive(thiserror::Error, PartialEq, Debug)]
@@ -7,14 +8,16 @@ pub enum Error {
 }
 
 pub fn render(
-    s: &str,
+    template: &str,
     inputs: &Vec<(String, String)>,
 ) -> Result<String, Error> {
+    let data: HashMap<String, String> =
+        inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect();
+
     let mut context = Context::new();
-    for i in inputs {
-        context.insert(&i.0, &i.1);
-    }
-    match Tera::one_off(s, &context, true) {
+    context.insert("skelly", &data);
+
+    match Tera::one_off(template, &context, true) {
         Ok(r) => Ok(r),
         Err(e) => Err(Error::Unknown(e.to_string())),
     }
