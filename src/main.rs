@@ -3,7 +3,11 @@ use skelly::{
     renderer::render,
     validation::validate_inputs,
 };
-use std::{fs, str::FromStr};
+use std::{
+    fs::{self, create_dir_all},
+    path::Path,
+    str::FromStr,
+};
 use walkdir::WalkDir;
 
 mod cli;
@@ -13,6 +17,7 @@ pub const SKELETON_DIRECTORY_NAME: &str = "skeleton";
 
 fn main() {
     let args = cli::get_args();
+    let output_path = Path::new(".");
 
     // Read skelly.toml
     let skelly_path = args.skeleton_path.join(CONFIG_FILENAME);
@@ -39,9 +44,13 @@ fn main() {
             let relative_path = render(
                 relative_path_raw.unwrap().to_str().unwrap(),
                 inputs.as_ref().unwrap(),
-            );
-            print!("{}", r.unwrap());
-            println!("{}", relative_path.unwrap());
+            )
+            .unwrap();
+
+            let final_path = output_path.join(relative_path);
+            let dir = final_path.parent().unwrap();
+            create_dir_all(dir).unwrap();
+            fs::write(final_path, &r.unwrap()).unwrap();
         }
     }
 
