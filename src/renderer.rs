@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn should_return_same() {
-        let result = render("test", &vec![]);
+        let result = render("test", &[]);
 
         assert_eq!("test", result.unwrap());
     }
@@ -38,7 +38,7 @@ mod tests {
     fn should_render_with_input() {
         let result = render(
             "Hello {{ skelly.name }}",
-            &vec![("name".to_owned(), "John".to_owned())],
+            &[("name".to_owned(), "John".to_owned())],
         );
 
         assert_eq!("Hello John", result.unwrap());
@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn should_error_when_missing_input() {
-        let result = render("Hello {{ skelly.name }}", &vec![]);
+        let result = render("Hello {{ skelly.name }}", &[]);
 
         assert_eq!(result, Err(Error::FailedToRender));
     }
