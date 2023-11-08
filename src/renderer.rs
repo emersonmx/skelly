@@ -9,7 +9,7 @@ pub enum Error {
 
 pub fn render(
     template: &str,
-    inputs: &Vec<(String, String)>,
+    inputs: &[(String, String)],
 ) -> Result<String, Error> {
     let data: HashMap<String, String> =
         inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect();
@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn should_return_same() {
-        let result = render("test", &Vec::new());
+        let result = render("test", &[]);
 
         assert_eq!("test", result.unwrap());
     }
@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn should_error_when_missing_input() {
-        let result = render("Hello {{ skelly.name }}", &Vec::new());
+        let result = render("Hello {{ skelly.name }}", &[]);
 
         assert_eq!(result, Err(Error::FailedToRender));
     }
