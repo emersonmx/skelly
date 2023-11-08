@@ -30,8 +30,8 @@ impl FromStr for Config {
 }
 
 impl Config {
-    pub fn new(inputs: Vec<Input>) -> Self {
-        Self { inputs }
+    pub fn new(inputs: &[Input]) -> Self {
+        Self { inputs: inputs.to_owned() }
     }
 }
 
@@ -51,7 +51,7 @@ mod tests {
 
         assert_eq!(
             config,
-            Config::new(vec![Input {
+            Config::new(&[Input {
                 name: "example".to_owned(),
                 default: None,
                 options: None,
