@@ -1,8 +1,4 @@
-use skelly::{
-    config::{to_input_map, Config},
-    renderer::render,
-    validation::validate_inputs,
-};
+use skelly::{config::Config, renderer::render, validation::validate_inputs};
 use std::{
     fs::{self, create_dir_all},
     path::Path,
@@ -25,8 +21,7 @@ fn main() {
     let config = Config::from_str(&skelly_content).unwrap();
 
     // Validate inputs
-    let input_map = to_input_map(config.inputs);
-    let inputs = validate_inputs(&args.inputs, &input_map);
+    let inputs = validate_inputs(&args.inputs, &config.inputs);
 
     // Fetch a file, render its contents and copy to final path
     let template_path = args.skeleton_path.join(SKELETON_DIRECTORY_NAME);

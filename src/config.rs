@@ -16,10 +16,6 @@ pub struct Input {
 
 pub type InputMap = HashMap<String, Input>;
 
-pub fn to_input_map(inputs: Vec<Input>) -> InputMap {
-    inputs.iter().map(|i| (i.name.to_owned(), i.to_owned())).collect()
-}
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub inputs: Vec<Input>,
