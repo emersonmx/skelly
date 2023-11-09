@@ -17,7 +17,7 @@ pub fn render(
     let mut context = Context::new();
     context.insert("skelly", &data);
 
-    match Tera::one_off(template, &context, true) {
+    match Tera::one_off(template, &context, false) {
         Ok(r) => Ok(r),
         Err(_) => Err(Error::FailedToRender),
     }
