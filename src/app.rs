@@ -1,4 +1,4 @@
-use crate::{
+use skelly::{
     config::{self, Config},
     renderer::render,
     validation::{self, validate_inputs},
@@ -18,7 +18,7 @@ pub enum Error {
     #[error(transparent)]
     FailedToParseConfig(#[from] config::Error),
     #[error("{0:?}")]
-    ValidationError(Vec<validation::Error>),
+    InvalidInputs(Vec<validation::Error>),
     #[error("{0}")]
     FailedToRender(String),
 }
@@ -72,7 +72,7 @@ impl App {
     fn fetch_valid_inputs(&self) -> Result<Vec<(String, String)>, Error> {
         let config = self.read_config()?;
         validate_inputs(&self.user_inputs, &config.inputs)
-            .map_err(Error::ValidationError)
+            .map_err(Error::InvalidInputs)
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {

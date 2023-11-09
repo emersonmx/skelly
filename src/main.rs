@@ -1,7 +1,7 @@
+use app::App;
 use std::{path::Path, process};
 
-use skelly::app::App;
-
+mod app;
 mod cli;
 
 fn main() {
