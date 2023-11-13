@@ -4,17 +4,19 @@ use std::collections::HashMap;
 pub type UserInput = (String, String);
 
 #[derive(thiserror::Error, PartialEq, Debug)]
-pub enum Error {
-    #[error("missing input '{0}'")]
+#[error("validation error")]
+pub struct Error(Vec<ErrorType>);
+
+#[derive(PartialEq, Debug)]
+pub enum ErrorType {
     MissingInput(String),
-    #[error("invalid option {1} to input '{0}'")]
     InvalidOption(String, String),
 }
 
 pub fn validate_inputs(
     user_inputs: &[UserInput],
     config_inputs: &[Input],
-) -> Result<Vec<UserInput>, Vec<Error>> {
+) -> Result<Vec<UserInput>, Error> {
     let input_map = create_input_map(config_inputs);
     let mut inputs = create_inputs_with_defaults(config_inputs);
     let mut errors = Vec::new();
@@ -25,7 +27,7 @@ pub fn validate_inputs(
     if errors.is_empty() {
         Ok(inputs.into_iter().collect())
     } else {
-        Err(errors)
+        Err(Error(errors))
     }
 }
 
@@ -47,7 +49,7 @@ fn fill_with_valid_inputs(
     user_inputs: &[UserInput],
     input_map: &HashMap<String, Input>,
     inputs: &mut HashMap<String, String>,
-    errors: &mut Vec<Error>,
+    errors: &mut Vec<ErrorType>,
 ) {
     for ui in user_inputs {
         if !input_map.contains_key(&ui.0) {
@@ -57,7 +59,10 @@ fn fill_with_valid_inputs(
         if has_option(&ui.1, &options) {
             inputs.insert(ui.0.to_owned(), ui.1.to_owned());
         } else {
-            errors.push(Error::InvalidOption(ui.0.to_owned(), ui.1.to_owned()));
+            errors.push(ErrorType::InvalidOption(
+                ui.0.to_owned(),
+                ui.1.to_owned(),
+            ));
         }
     }
 }
@@ -73,11 +78,11 @@ fn has_option(option: &String, options: &Vec<String>) -> bool {
 fn check_for_missing_inputs(
     inputs: &HashMap<String, String>,
     input_map: &HashMap<String, Input>,
-    errors: &mut Vec<Error>,
+    errors: &mut Vec<ErrorType>,
 ) {
     for im in input_map.values() {
         if !inputs.contains_key(&im.name) {
-            errors.push(Error::MissingInput(im.name.to_owned()));
+            errors.push(ErrorType::MissingInput(im.name.to_owned()));
         }
     }
 }
@@ -153,9 +158,10 @@ mod tests {
             options: None,
         }];
 
-        let result = validate_inputs(&[], &config_inputs);
+        let got = validate_inputs(&[], &config_inputs);
+        let want = Err(Error(vec![ErrorType::MissingInput("test".to_owned())]));
 
-        assert_eq!(result, Err(vec![Error::MissingInput("test".to_owned())]),);
+        assert_eq!(got, want);
     }
 
     #[test]
@@ -173,10 +179,13 @@ mod tests {
 
         assert_eq!(
             result,
-            Err(vec![
-                Error::InvalidOption("test".to_owned(), "invalid".to_owned()),
-                Error::MissingInput("test".to_owned())
-            ]),
+            Err(Error(vec![
+                ErrorType::InvalidOption(
+                    "test".to_owned(),
+                    "invalid".to_owned()
+                ),
+                ErrorType::MissingInput("test".to_owned())
+            ])),
         );
     }
 }

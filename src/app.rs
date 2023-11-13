@@ -18,7 +18,7 @@ pub enum Error {
     #[error(transparent)]
     FailedToParseConfig(#[from] config::Error),
     #[error("{0:?}")]
-    InvalidInputs(Vec<validation::Error>),
+    InvalidInputs(validation::Error),
     #[error("{0}")]
     FailedToRender(String),
 }
