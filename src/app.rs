@@ -1,5 +1,9 @@
 use anyhow::{anyhow, Result};
-use skelly::{config::Config, renderer::render, validation::validate_inputs};
+use skelly::{
+    config::Config,
+    renderer::render,
+    validation::{validate_inputs, ErrorType},
+};
 use std::{
     fs::{self, create_dir_all},
     path::{Path, PathBuf},
@@ -56,8 +60,25 @@ impl App {
 
     fn fetch_valid_inputs(&self) -> Result<Vec<(String, String)>> {
         let config = self.read_config()?;
-        let inputs = validate_inputs(&self.user_inputs, &config.inputs)?;
-        Ok(inputs)
+        match validate_inputs(&self.user_inputs, &config.inputs) {
+            Ok(inputs) => Ok(inputs),
+            Err(errors) => {
+                for error in &errors.0 {
+                    match error {
+                        ErrorType::MissingInput(name) => {
+                            println!("Missing input '{}'.", name);
+                        }
+                        ErrorType::InvalidOption(name, value) => {
+                            println!(
+                                "Invalid option '{}' to input '{}'.",
+                                value, name
+                            );
+                        }
+                    }
+                }
+                Err(errors.into())
+            }
+        }
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {
