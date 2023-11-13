@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub type UserInput = (String, String);
 
 #[derive(thiserror::Error, PartialEq, Debug)]
-#[error("validation error")]
+#[error("validation errors")]
 pub struct Error(Vec<ErrorType>);
 
 #[derive(PartialEq, Debug)]

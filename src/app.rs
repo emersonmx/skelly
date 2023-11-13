@@ -1,27 +1,11 @@
-use skelly::{
-    config::{self, Config},
-    renderer::render,
-    validation::{self, validate_inputs},
-};
+use anyhow::{anyhow, Result};
+use skelly::{config::Config, renderer::render, validation::validate_inputs};
 use std::{
     fs::{self, create_dir_all},
-    io,
     path::{Path, PathBuf},
     str::FromStr,
 };
 use walkdir::WalkDir;
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error(transparent)]
-    FailedToReadFile(#[from] io::Error),
-    #[error(transparent)]
-    FailedToParseConfig(#[from] config::Error),
-    #[error("{0:?}")]
-    InvalidInputs(validation::Error),
-    #[error("{0}")]
-    FailedToRender(String),
-}
 
 pub struct App {
     user_inputs: Vec<(String, String)>,
@@ -47,7 +31,7 @@ impl App {
         }
     }
 
-    pub fn run(&self) -> Result<(), Error> {
+    pub fn run(&self) -> Result<()> {
         let inputs = self.fetch_valid_inputs()?;
         for entry in self.iter_template_path() {
             let path = entry.as_ref().map(|e| e.path());
@@ -63,16 +47,17 @@ impl App {
         Ok(())
     }
 
-    fn read_config(&self) -> Result<Config, Error> {
+    fn read_config(&self) -> Result<Config> {
         let skelly_path = self.skeleton_path.join(Self::CONFIG_FILENAME);
         let skelly_content = fs::read_to_string(skelly_path)?;
-        Config::from_str(&skelly_content).map_err(Error::FailedToParseConfig)
+        let config = Config::from_str(&skelly_content)?;
+        Ok(config)
     }
 
-    fn fetch_valid_inputs(&self) -> Result<Vec<(String, String)>, Error> {
+    fn fetch_valid_inputs(&self) -> Result<Vec<(String, String)>> {
         let config = self.read_config()?;
-        validate_inputs(&self.user_inputs, &config.inputs)
-            .map_err(Error::InvalidInputs)
+        let inputs = validate_inputs(&self.user_inputs, &config.inputs)?;
+        Ok(inputs)
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {
@@ -83,7 +68,7 @@ impl App {
         &self,
         path: &Path,
         inputs: &[(String, String)],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let rendered_template = self.render_template(path, inputs)?;
         let relative_path = self.strip_template_path(path)?;
         let rendered_relative_path =
@@ -92,13 +77,8 @@ impl App {
         Ok(())
     }
 
-    fn strip_template_path(&self, path: &Path) -> Result<PathBuf, Error> {
-        let relative_path =
-            path.strip_prefix(&self.template_path).map_err(|_| {
-                Error::FailedToRender(
-                    "Unable to strip template path".to_owned(),
-                )
-            })?;
+    fn strip_template_path(&self, path: &Path) -> Result<PathBuf> {
+        let relative_path = path.strip_prefix(&self.template_path)?;
         Ok(PathBuf::from(relative_path))
     }
 
@@ -106,33 +86,29 @@ impl App {
         &self,
         path: &Path,
         inputs: &[(String, String)],
-    ) -> Result<String, Error> {
+    ) -> Result<String> {
         let content = fs::read_to_string(path)?;
-        render(&content, inputs).map_err(|_| {
-            Error::FailedToRender("Unable to render template".to_owned())
-        })
+        let rendered_content = render(&content, inputs)?;
+        Ok(rendered_content)
     }
 
     fn render_path(
         &self,
         path: &Path,
         inputs: &[(String, String)],
-    ) -> Result<PathBuf, Error> {
-        let raw_path = path.to_str().ok_or(Error::FailedToRender(
-            "Unable to convert relative path to str".to_owned(),
-        ))?;
-        let rendered_path = render(raw_path, inputs).map_err(|_| {
-            Error::FailedToRender("Unable to render relative path".to_owned())
-        })?;
+    ) -> Result<PathBuf> {
+        let raw_path = path
+            .to_str()
+            .ok_or(anyhow!("Unable to convert relative path to str"))?;
+        let rendered_path = render(raw_path, inputs)?;
         Ok(PathBuf::from(rendered_path))
     }
 
-    fn write_temnplate(&self, path: &Path, content: &str) -> Result<(), Error> {
+    fn write_temnplate(&self, path: &Path, content: &str) -> Result<()> {
         let output_path = self.output_path.join(path);
-        let output_directory =
-            output_path.parent().ok_or(Error::FailedToRender(
-                "Unable to fetch parent directory".to_owned(),
-            ))?;
+        let output_directory = output_path
+            .parent()
+            .ok_or(anyhow!("Unable to fetch parent directory",))?;
         create_dir_all(output_directory)?;
         fs::write(output_path, content)?;
 
