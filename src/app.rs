@@ -53,16 +53,22 @@ impl App {
 
     fn read_config(&self) -> Result<Config> {
         let skelly_path = self.skeleton_path.join(Self::CONFIG_FILENAME);
-        let skelly_content = fs::read_to_string(skelly_path)?;
-        let config = Config::from_str(&skelly_content)?;
+        let skelly_content =
+            fs::read_to_string(skelly_path).map_err(|error| {
+                println!("Unable to read file '{}'.", Self::CONFIG_FILENAME);
+                error
+            })?;
+        let config = Config::from_str(&skelly_content).map_err(|error| {
+            println!("Unable to parse file '{}'.", Self::CONFIG_FILENAME);
+            error
+        })?;
         Ok(config)
     }
 
     fn fetch_valid_inputs(&self) -> Result<Vec<(String, String)>> {
         let config = self.read_config()?;
-        match validate_inputs(&self.user_inputs, &config.inputs) {
-            Ok(inputs) => Ok(inputs),
-            Err(errors) => {
+        let inputs = validate_inputs(&self.user_inputs, &config.inputs)
+            .map_err(|errors| {
                 for error in &errors.0 {
                     match error {
                         ErrorType::MissingInput(name) => {
@@ -76,9 +82,9 @@ impl App {
                         }
                     }
                 }
-                Err(errors.into())
-            }
-        }
+                errors
+            })?;
+        Ok(inputs)
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {
@@ -99,7 +105,15 @@ impl App {
     }
 
     fn strip_template_path(&self, path: &Path) -> Result<PathBuf> {
-        let relative_path = path.strip_prefix(&self.template_path)?;
+        let relative_path =
+            path.strip_prefix(&self.template_path).map_err(|error| {
+                println!(
+                    "Unable to strip template path '{}' from path '{}'.",
+                    self.template_path.display(),
+                    path.display()
+                );
+                error
+            })?;
         Ok(PathBuf::from(relative_path))
     }
 
@@ -108,8 +122,14 @@ impl App {
         path: &Path,
         inputs: &[(String, String)],
     ) -> Result<String> {
-        let content = fs::read_to_string(path)?;
-        let rendered_content = render(&content, inputs)?;
+        let content = fs::read_to_string(path).map_err(|error| {
+            println!("Unable to render file '{}'.", path.display());
+            error
+        })?;
+        let rendered_content = render(&content, inputs).map_err(|error| {
+            println!("Unable to render template.");
+            error
+        })?;
         Ok(rendered_content)
     }
 
@@ -118,20 +138,42 @@ impl App {
         path: &Path,
         inputs: &[(String, String)],
     ) -> Result<PathBuf> {
-        let raw_path = path
-            .to_str()
-            .ok_or(anyhow!("Unable to convert relative path to str"))?;
-        let rendered_path = render(raw_path, inputs)?;
+        let raw_path = path.to_str().ok_or_else(|| {
+            let message = format!(
+                "Unable to convert relative path '{}' to str.",
+                path.display()
+            );
+            println!("{}", message);
+            anyhow!(message)
+        })?;
+        let rendered_path = render(raw_path, inputs).map_err(|error| {
+            println!("Unable to render path.");
+            error
+        })?;
         Ok(PathBuf::from(rendered_path))
     }
 
     fn write_temnplate(&self, path: &Path, content: &str) -> Result<()> {
         let output_path = self.output_path.join(path);
-        let output_directory = output_path
-            .parent()
-            .ok_or(anyhow!("Unable to fetch parent directory",))?;
-        create_dir_all(output_directory)?;
-        fs::write(output_path, content)?;
+        let output_directory = output_path.parent().ok_or_else(|| {
+            let message = format!(
+                "Unable to fetch parent directory of '{}'.",
+                path.display()
+            );
+            println!("{}", message);
+            anyhow!(message)
+        })?;
+        create_dir_all(output_directory).map_err(|error| {
+            println!("Unable to create path '{}'.", output_directory.display());
+            error
+        })?;
+        fs::write(&output_path, content).map_err(|error| {
+            println!(
+                "Unable to write content to path '{}'.",
+                &output_path.display()
+            );
+            error
+        })?;
 
         Ok(())
     }
