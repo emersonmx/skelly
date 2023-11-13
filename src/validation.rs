@@ -5,7 +5,7 @@ pub type UserInput = (String, String);
 
 #[derive(thiserror::Error, PartialEq, Debug)]
 #[error("validation errors")]
-pub struct Error(Vec<ErrorType>);
+pub struct Error(pub Vec<ErrorType>);
 
 #[derive(PartialEq, Debug)]
 pub enum ErrorType {
