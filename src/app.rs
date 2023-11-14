@@ -55,11 +55,11 @@ impl App {
         let skelly_path = self.skeleton_path.join(Self::CONFIG_FILENAME);
         let skelly_content =
             fs::read_to_string(skelly_path).map_err(|error| {
-                println!("Unable to read file '{}'.", Self::CONFIG_FILENAME);
+                eprintln!("Unable to read file '{}'.", Self::CONFIG_FILENAME);
                 error
             })?;
         let config = Config::from_str(&skelly_content).map_err(|error| {
-            println!("Unable to parse file '{}'.", Self::CONFIG_FILENAME);
+            eprintln!("Unable to parse file '{}'.", Self::CONFIG_FILENAME);
             error
         })?;
         Ok(config)
@@ -72,10 +72,10 @@ impl App {
                 for error in &errors.0 {
                     match error {
                         ErrorType::MissingInput(name) => {
-                            println!("Missing input '{}'.", name);
+                            eprintln!("Missing input '{}'.", name);
                         }
                         ErrorType::InvalidOption(name, value) => {
-                            println!(
+                            eprintln!(
                                 "Invalid option '{}' to input '{}'.",
                                 value, name
                             );
@@ -107,7 +107,7 @@ impl App {
     fn strip_template_path(&self, path: &Path) -> Result<PathBuf> {
         let relative_path =
             path.strip_prefix(&self.template_path).map_err(|error| {
-                println!(
+                eprintln!(
                     "Unable to strip template path '{}' from path '{}'.",
                     self.template_path.display(),
                     path.display()
@@ -123,11 +123,11 @@ impl App {
         inputs: &[(String, String)],
     ) -> Result<String> {
         let content = fs::read_to_string(path).map_err(|error| {
-            println!("Unable to render file '{}'.", path.display());
+            eprintln!("Unable to render file '{}'.", path.display());
             error
         })?;
         let rendered_content = render(&content, inputs).map_err(|error| {
-            println!("Unable to render template.");
+            eprintln!("Unable to render template.");
             error
         })?;
         Ok(rendered_content)
@@ -143,11 +143,11 @@ impl App {
                 "Unable to convert relative path '{}' to str.",
                 path.display()
             );
-            println!("{}", message);
+            eprintln!("{}", message);
             anyhow!(message)
         })?;
         let rendered_path = render(raw_path, inputs).map_err(|error| {
-            println!("Unable to render path.");
+            eprintln!("Unable to render path.");
             error
         })?;
         Ok(PathBuf::from(rendered_path))
@@ -160,15 +160,18 @@ impl App {
                 "Unable to fetch parent directory of '{}'.",
                 path.display()
             );
-            println!("{}", message);
+            eprintln!("{}", message);
             anyhow!(message)
         })?;
         create_dir_all(output_directory).map_err(|error| {
-            println!("Unable to create path '{}'.", output_directory.display());
+            eprintln!(
+                "Unable to create path '{}'.",
+                output_directory.display()
+            );
             error
         })?;
         fs::write(&output_path, content).map_err(|error| {
-            println!(
+            eprintln!(
                 "Unable to write content to path '{}'.",
                 &output_path.display()
             );
