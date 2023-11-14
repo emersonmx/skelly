@@ -40,7 +40,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn should_parse_from_string() {
+    fn parse_from_string() {
         let config = Config::from_str(
             r#"
             [[inputs]]

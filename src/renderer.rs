@@ -28,14 +28,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn should_return_same() {
+    fn return_same() {
         let result = render("test", &[]);
 
         assert_eq!("test", result.unwrap());
     }
 
     #[test]
-    fn should_render_with_input() {
+    fn render_with_input() {
         let result = render(
             "Hello {{ skelly.name }}",
             &vec![("name".to_owned(), "John".to_owned())],
@@ -45,7 +45,7 @@ mod tests {
     }
 
     #[test]
-    fn should_error_when_missing_input() {
+    fn error_when_missing_input() {
         let result = render("Hello {{ skelly.name }}", &[]);
 
         assert_eq!(result, Err(Error::FailedToRender));

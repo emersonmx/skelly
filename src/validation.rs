@@ -102,7 +102,7 @@ mod tests {
     }
 
     #[test]
-    fn should_return_default_when_empty_user_inputs() {
+    fn return_default_when_empty_user_inputs() {
         let input_map = make_config_inputs();
 
         let result = validate_inputs(&[], &input_map);
@@ -111,7 +111,7 @@ mod tests {
     }
 
     #[test]
-    fn should_return_user_input_over_default() {
+    fn return_user_input_over_default() {
         let input_map = make_config_inputs();
 
         let result = validate_inputs(
@@ -123,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn should_ignore_unknown_inputs() {
+    fn ignore_unknown_inputs() {
         let input_map = make_config_inputs();
 
         let result = validate_inputs(
@@ -135,7 +135,7 @@ mod tests {
     }
 
     #[test]
-    fn should_ignore_empty_options_list() {
+    fn ignore_empty_options_list() {
         let config_inputs = vec![Input {
             name: "test".to_owned(),
             default: None,
@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn should_return_error_when_missing_input() {
+    fn return_error_when_missing_input() {
         let config_inputs = vec![Input {
             name: "test".to_owned(),
             default: None,
@@ -165,7 +165,7 @@ mod tests {
     }
 
     #[test]
-    fn should_return_error_when_input_is_not_a_valid_option() {
+    fn return_error_when_input_is_not_a_valid_option() {
         let config_inputs = vec![Input {
             name: "test".to_owned(),
             default: None,
