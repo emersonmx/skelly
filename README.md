@@ -1,5 +1,7 @@
 # skelly
 
+A simple scaffold tool written in Rust.
+
 ## Usage
 
 ```sh
