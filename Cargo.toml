@@ -1,6 +1,8 @@
 [package]
 name = "skelly"
 version = "0.1.0"
+description = "A simple scaffold tool written in Rust."
+authors = ["Emerson Max de Medeiros Silva <emersonmx@gmail.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
