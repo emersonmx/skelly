@@ -1,7 +1,22 @@
 use clap::Parser;
-use std::path::PathBuf;
+use std::{fs::create_dir_all, path::PathBuf};
 
 pub type Input = (String, String);
+
+fn parse_output_path(value: &str) -> Result<PathBuf, String> {
+    let path = PathBuf::from(value);
+
+    if path.exists() {
+        if !path.is_dir() {
+            return Err(format!("'{value}' is not a directory."));
+        }
+    } else {
+        create_dir_all(&path)
+            .or(Err(format!("unable to create directory '{value}'.")))?;
+    }
+
+    path.canonicalize().or(Err(format!("unable to resolve path '{value}'.")))
+}
 
 fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);
@@ -21,6 +36,10 @@ fn parse_input(value: &str) -> Result<Input, String> {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    /// Where to output the generated skeleton into
+    #[arg(short, long, value_name = "DIRECTORY", value_parser = parse_output_path)]
+    pub output_path: Option<PathBuf>,
+
     #[arg(value_parser = parse_skeleton_path)]
     pub skeleton_path: PathBuf,
 
