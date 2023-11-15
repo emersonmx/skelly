@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::{collections::HashMap, str::FromStr};
 
 #[derive(thiserror::Error, PartialEq, Debug)]
@@ -10,8 +10,20 @@ pub enum Error {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Input {
     pub name: String,
+    #[serde(default, deserialize_with = "deserialize_default")]
     pub default: Option<String>,
+    #[serde(default)]
     pub options: Option<Vec<String>>,
+}
+
+fn deserialize_default<'de, D>(
+    deserializer: D,
+) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: toml::Value = Deserialize::deserialize(deserializer)?;
+    Ok(Some(value.to_string()))
 }
 
 pub type InputMap = HashMap<String, Input>;
@@ -54,6 +66,27 @@ mod tests {
             Config::new(&[Input {
                 name: "example".to_owned(),
                 default: None,
+                options: None,
+            }]),
+        );
+    }
+
+    #[test]
+    fn convert_default_field_to_string() {
+        let config = Config::from_str(
+            r#"
+            [[inputs]]
+            name = "example"
+            default = 42
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            config,
+            Config::new(&[Input {
+                name: "example".to_owned(),
+                default: Some("42".to_owned()),
                 options: None,
             }]),
         );
