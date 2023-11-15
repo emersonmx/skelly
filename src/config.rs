@@ -1,4 +1,4 @@
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{collections::HashMap, str::FromStr};
 
 #[derive(thiserror::Error, PartialEq, Debug)]
@@ -12,7 +12,7 @@ pub struct Input {
     pub name: String,
     #[serde(default, deserialize_with = "deserialize_default")]
     pub default: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_options")]
     pub options: Option<Vec<String>>,
 }
 
@@ -24,6 +24,23 @@ where
 {
     let value: toml::Value = Deserialize::deserialize(deserializer)?;
     Ok(Some(value.to_string()))
+}
+
+fn deserialize_options<'de, D>(
+    deserializer: D,
+) -> Result<Option<Vec<String>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: toml::Value = Deserialize::deserialize(deserializer)?;
+    let values: Vec<String> = value
+        .as_array()
+        .ok_or(de::Error::custom("unable to deserialize options"))?
+        .iter()
+        .map(|v| v.to_string())
+        .collect();
+
+    Ok(Some(values))
 }
 
 pub type InputMap = HashMap<String, Input>;
@@ -88,6 +105,31 @@ mod tests {
                 name: "example".to_owned(),
                 default: Some("42".to_owned()),
                 options: None,
+            }]),
+        );
+    }
+
+    #[test]
+    fn convert_options_field_to_a_string_vector() {
+        let config = Config::from_str(
+            r#"
+            [[inputs]]
+            name = "example"
+            options = [1, 2, 3]
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            config,
+            Config::new(&[Input {
+                name: "example".to_owned(),
+                default: None,
+                options: Some(vec![
+                    "1".to_owned(),
+                    "2".to_owned(),
+                    "3".to_owned()
+                ]),
             }]),
         );
     }
