@@ -22,8 +22,10 @@ fn deserialize_default<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let value: toml::Value = Deserialize::deserialize(deserializer)?;
-    Ok(Some(value.to_string()))
+    match Deserialize::deserialize(deserializer)? {
+        toml::Value::String(value) => Ok(Some(value)),
+        value => Ok(Some(value.to_string()))
+    }
 }
 
 fn deserialize_options<'de, D>(
