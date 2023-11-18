@@ -16,16 +16,21 @@ pub struct Input {
     pub options: Option<Vec<String>>,
 }
 
+fn value_to_string(value: &toml::Value) -> String {
+    match value {
+        toml::Value::String(v) => v.to_owned(),
+        v => v.to_string(),
+    }
+}
+
 fn deserialize_default<'de, D>(
     deserializer: D,
 ) -> Result<Option<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    match Deserialize::deserialize(deserializer)? {
-        toml::Value::String(value) => Ok(Some(value)),
-        value => Ok(Some(value.to_string()))
-    }
+    let value: toml::Value = Deserialize::deserialize(deserializer)?;
+    Ok(Some(value_to_string(&value)))
 }
 
 fn deserialize_options<'de, D>(
@@ -39,7 +44,7 @@ where
         .as_array()
         .ok_or(de::Error::custom("unable to deserialize options"))?
         .iter()
-        .map(|v| v.to_string())
+        .map(value_to_string)
         .collect();
 
     Ok(Some(values))
