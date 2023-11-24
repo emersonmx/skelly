@@ -19,8 +19,8 @@ pub struct App {
 }
 
 impl App {
-    const CONFIG_FILENAME: &str = "skelly.toml";
-    const SKELETON_DIRECTORY_NAME: &str = "skeleton";
+    const CONFIG_FILENAME: &'static str = "skelly.toml";
+    const SKELETON_DIRECTORY_NAME: &'static str = "skeleton";
 
     pub fn new(
         user_inputs: Vec<(String, String)>,

@@ -38,7 +38,7 @@ mod tests {
     fn render_with_input() {
         let result = render(
             "Hello {{ skelly.name }}",
-            &vec![("name".to_owned(), "John".to_owned())],
+            &[("name".to_owned(), "John".to_owned())],
         );
 
         assert_eq!("Hello John", result.unwrap());
