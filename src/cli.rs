@@ -18,17 +18,6 @@ fn parse_output_path(value: &str) -> Result<PathBuf, String> {
     path.canonicalize().or(Err(format!("unable to resolve path '{value}'.")))
 }
 
-fn parse_prefix(value: &str) -> Result<String, String> {
-    let clean_value = value.trim();
-    for c in clean_value.chars() {
-        match c {
-            'a'..='z' | '_' => continue,
-            _ => return Err(format!("'{clean_value}' is not a valid prefix.")),
-        }
-    }
-    Ok(clean_value.to_owned())
-}
-
 fn parse_skeleton_path(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);
 
@@ -56,11 +45,6 @@ pub struct Args {
         value_parser = parse_output_path
     )]
     pub output_path: PathBuf,
-
-    /// Defines the prefix to use in the skeleton.
-    /// Only the characters [a-z_] are allowed.
-    #[arg(short, long, default_value = "skelly", value_parser = parse_prefix)]
-    pub prefix: String,
 
     #[arg(value_parser = parse_skeleton_path)]
     pub skeleton_path: PathBuf,

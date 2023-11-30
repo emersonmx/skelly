@@ -27,14 +27,13 @@ impl App {
         user_inputs: Vec<(String, String)>,
         skeleton_path: &Path,
         output_path: &Path,
-        prefix: &str,
     ) -> Self {
         Self {
             user_inputs,
             skeleton_path: skeleton_path.to_owned(),
             output_path: output_path.to_owned(),
             template_path: skeleton_path.join(Self::SKELETON_DIRECTORY_NAME),
-            prefix: prefix.to_owned(),
+            prefix: "skelly".to_owned(),
         }
     }
 
