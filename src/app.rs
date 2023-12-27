@@ -36,10 +36,8 @@ impl App {
         skeleton_path: Option<&Path>,
         output_path: &Path,
     ) -> Self {
-        let template_path = match skeleton_path {
-            Some(p) => Some(p.join(Self::SKELETON_DIRECTORY_NAME)),
-            None => None,
-        };
+        let template_path =
+            skeleton_path.map(|p| p.join(Self::SKELETON_DIRECTORY_NAME));
         Self {
             user_inputs,
             skeleton_path: skeleton_path.map(|s| s.to_owned()),
@@ -134,6 +132,22 @@ impl App {
         Ok(())
     }
 
+    fn render_template(
+        &self,
+        path: &Path,
+        inputs: &[(String, String)],
+    ) -> Result<String> {
+        let content = fs::read_to_string(path).map_err(|error| {
+            eprintln!("Unable to render file '{}'.", path.display());
+            error
+        })?;
+        let rendered_content = render(&content, inputs).map_err(|error| {
+            eprintln!("Unable to render template.");
+            error
+        })?;
+        Ok(rendered_content)
+    }
+
     fn output_in_terminal(&self) -> bool {
         !stdout_is_terminal()
     }
@@ -141,8 +155,7 @@ impl App {
     fn strip_template_path(&self, path: &Path) -> Result<PathBuf> {
         let relative_path = path
             .strip_prefix(
-                &self
-                    .template_path
+                self.template_path
                     .as_ref()
                     .expect("template path is required!"),
             )
@@ -158,22 +171,6 @@ impl App {
                 error
             })?;
         Ok(PathBuf::from(relative_path))
-    }
-
-    fn render_template(
-        &self,
-        path: &Path,
-        inputs: &[(String, String)],
-    ) -> Result<String> {
-        let content = fs::read_to_string(path).map_err(|error| {
-            eprintln!("Unable to render file '{}'.", path.display());
-            error
-        })?;
-        let rendered_content = render(&content, inputs).map_err(|error| {
-            eprintln!("Unable to render template.");
-            error
-        })?;
-        Ok(rendered_content)
     }
 
     fn render_path(

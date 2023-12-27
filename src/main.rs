@@ -7,10 +7,9 @@ mod cli;
 
 fn main() {
     let args = cli::Args::parse();
-    let skeleton_path = args.skeleton_path.expect("-s is required");
     let app = App::new(
         args.inputs,
-        Some(skeleton_path.as_path()),
+        args.skeleton_path.as_deref(),
         args.output_path.as_path(),
     );
 
