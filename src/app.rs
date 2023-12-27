@@ -13,9 +13,9 @@ use walkdir::WalkDir;
 
 pub struct App {
     user_inputs: Vec<(String, String)>,
-    skeleton_path: PathBuf,
+    skeleton_path: Option<PathBuf>,
     output_path: PathBuf,
-    template_path: PathBuf,
+    template_path: Option<PathBuf>,
 }
 
 impl App {
@@ -24,14 +24,18 @@ impl App {
 
     pub fn new(
         user_inputs: Vec<(String, String)>,
-        skeleton_path: &Path,
+        skeleton_path: Option<&Path>,
         output_path: &Path,
     ) -> Self {
+        let template_path = match skeleton_path {
+            Some(p) => Some(p.join(Self::SKELETON_DIRECTORY_NAME)),
+            None => None,
+        };
         Self {
             user_inputs,
-            skeleton_path: skeleton_path.to_owned(),
+            skeleton_path: skeleton_path.map(|s| s.to_owned()),
             output_path: output_path.to_owned(),
-            template_path: skeleton_path.join(Self::SKELETON_DIRECTORY_NAME),
+            template_path,
         }
     }
 
@@ -52,7 +56,12 @@ impl App {
     }
 
     fn read_config(&self) -> Result<Config> {
-        let skelly_path = self.skeleton_path.join(Self::CONFIG_FILENAME);
+        let skelly_path = self
+            .skeleton_path
+            .as_ref()
+            .expect("skeleton path is required!")
+            .clone()
+            .join(Self::CONFIG_FILENAME);
         let skelly_content =
             fs::read_to_string(skelly_path).map_err(|error| {
                 eprintln!("Unable to read file '{}'.", Self::CONFIG_FILENAME);
@@ -88,7 +97,11 @@ impl App {
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {
-        WalkDir::new(&self.template_path).min_depth(1).into_iter()
+        WalkDir::new(
+            self.template_path.as_ref().expect("template path is required!"),
+        )
+        .min_depth(1)
+        .into_iter()
     }
 
     fn process_template(
@@ -105,11 +118,20 @@ impl App {
     }
 
     fn strip_template_path(&self, path: &Path) -> Result<PathBuf> {
-        let relative_path =
-            path.strip_prefix(&self.template_path).map_err(|error| {
+        let relative_path = path
+            .strip_prefix(
+                &self
+                    .template_path
+                    .as_ref()
+                    .expect("template path is required!"),
+            )
+            .map_err(|error| {
                 eprintln!(
                     "Unable to strip template path '{}' from path '{}'.",
-                    self.template_path.display(),
+                    self.template_path
+                        .as_ref()
+                        .expect("template path is required!")
+                        .display(),
                     path.display()
                 );
                 error
