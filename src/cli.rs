@@ -46,8 +46,8 @@ pub struct Args {
     )]
     pub output_path: PathBuf,
 
-    #[arg(value_parser = parse_skeleton_path)]
-    pub skeleton_path: PathBuf,
+    #[arg(short, long, value_name = "DIRECTORY", value_parser = parse_skeleton_path)]
+    pub skeleton_path: Option<PathBuf>,
 
     #[arg(value_parser = parse_input)]
     pub inputs: Vec<Input>,
