@@ -123,11 +123,19 @@ impl App {
         inputs: &[(String, String)],
     ) -> Result<()> {
         let rendered_template = self.render_template(path, inputs)?;
-        let relative_path = self.strip_template_path(path)?;
-        let rendered_relative_path =
-            self.render_path(&relative_path, inputs)?;
-        self.write_template(&rendered_relative_path, &rendered_template)?;
+        if self.output_in_terminal() {
+            self.show_template(&rendered_template);
+        } else {
+            let relative_path = self.strip_template_path(path)?;
+            let rendered_relative_path =
+                self.render_path(&relative_path, inputs)?;
+            self.write_template(&rendered_relative_path, &rendered_template)?;
+        }
         Ok(())
+    }
+
+    fn output_in_terminal(&self) -> bool {
+        !stdout_is_terminal()
     }
 
     fn strip_template_path(&self, path: &Path) -> Result<PathBuf> {
@@ -186,6 +194,10 @@ impl App {
             error
         })?;
         Ok(PathBuf::from(rendered_path))
+    }
+
+    fn show_template(&self, content: &str) {
+        print!("{}", content);
     }
 
     fn write_template(&self, path: &Path, content: &str) -> Result<()> {
