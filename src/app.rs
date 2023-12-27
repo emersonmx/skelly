@@ -104,7 +104,11 @@ impl App {
     }
 
     fn fetch_inputs(&self) -> Result<Vec<(String, String)>> {
-        self.fetch_valid_inputs()
+        if self.skeleton_path.is_none() {
+            Ok(self.user_inputs.to_owned())
+        } else {
+            self.fetch_valid_inputs()
+        }
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {
