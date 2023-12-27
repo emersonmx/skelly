@@ -4,12 +4,21 @@ use skelly::{
     renderer::render,
     validation::{validate_inputs, ErrorType},
 };
+use std::io::IsTerminal;
 use std::{
     fs::{self, create_dir_all},
     path::{Path, PathBuf},
     str::FromStr,
 };
 use walkdir::WalkDir;
+
+fn stdin_is_terminal() -> bool {
+    std::io::stdin().is_terminal()
+}
+
+fn stdout_is_terminal() -> bool {
+    std::io::stdout().is_terminal()
+}
 
 pub struct App {
     user_inputs: Vec<(String, String)>,
@@ -40,7 +49,7 @@ impl App {
     }
 
     pub fn run(&self) -> Result<()> {
-        let inputs = self.fetch_valid_inputs()?;
+        let inputs = self.fetch_inputs()?;
         for entry in self.iter_template_path() {
             let path = entry.as_ref().map(|e| e.path());
             if let Ok(path) = path {
@@ -94,6 +103,10 @@ impl App {
                 errors
             })?;
         Ok(inputs)
+    }
+
+    fn fetch_inputs(&self) -> Result<Vec<(String, String)>> {
+        self.fetch_valid_inputs()
     }
 
     fn iter_template_path(&self) -> walkdir::IntoIter {
