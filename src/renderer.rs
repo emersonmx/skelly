@@ -10,19 +10,13 @@ pub enum Error {
 pub fn render(
     template: &str,
     inputs: &[(String, String)],
-    prefix: &str,
 ) -> Result<String, Error> {
     let data: HashMap<String, String> =
         inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect();
 
     let mut context = Context::new();
-    match prefix.trim() {
-        "" => {
-            for (key, value) in data {
-                context.insert(&key, &value);
-            }
-        }
-        p => context.insert(p, &data),
+    for (key, value) in data {
+        context.insert(&key, &value);
     }
 
     match Tera::one_off(template, &context, false) {
@@ -37,7 +31,7 @@ mod tests {
 
     #[test]
     fn return_same() {
-        let result = render("test", &[], "");
+        let result = render("test", &[]);
 
         assert_eq!("test", result.unwrap());
     }
@@ -47,18 +41,6 @@ mod tests {
         let result = render(
             "Hello {{ name }}",
             &[("name".to_owned(), "John".to_owned())],
-            "",
-        );
-
-        assert_eq!("Hello John", result.unwrap());
-    }
-
-    #[test]
-    fn render_with_input_and_prefix() {
-        let result = render(
-            "Hello {{ skelly.name }}",
-            &[("name".to_owned(), "John".to_owned())],
-            "skelly",
         );
 
         assert_eq!("Hello John", result.unwrap());
@@ -66,7 +48,7 @@ mod tests {
 
     #[test]
     fn error_when_missing_input() {
-        let result = render("Hello {{ skelly.name }}", &[], "skelly");
+        let result = render("Hello {{ skelly.name }}", &[]);
 
         assert_eq!(result, Err(Error::FailedToRender));
     }

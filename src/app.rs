@@ -16,7 +16,6 @@ pub struct App {
     skeleton_path: PathBuf,
     output_path: PathBuf,
     template_path: PathBuf,
-    prefix: String,
 }
 
 impl App {
@@ -33,7 +32,6 @@ impl App {
             skeleton_path: skeleton_path.to_owned(),
             output_path: output_path.to_owned(),
             template_path: skeleton_path.join(Self::SKELETON_DIRECTORY_NAME),
-            prefix: "skelly".to_owned(),
         }
     }
 
@@ -128,11 +126,10 @@ impl App {
             eprintln!("Unable to render file '{}'.", path.display());
             error
         })?;
-        let rendered_content =
-            render(&content, inputs, &self.prefix).map_err(|error| {
-                eprintln!("Unable to render template.");
-                error
-            })?;
+        let rendered_content = render(&content, inputs).map_err(|error| {
+            eprintln!("Unable to render template.");
+            error
+        })?;
         Ok(rendered_content)
     }
 
@@ -149,11 +146,10 @@ impl App {
             eprintln!("{}", message);
             anyhow!(message)
         })?;
-        let rendered_path =
-            render(raw_path, inputs, &self.prefix).map_err(|error| {
-                eprintln!("Unable to render path.");
-                error
-            })?;
+        let rendered_path = render(raw_path, inputs).map_err(|error| {
+            eprintln!("Unable to render path.");
+            error
+        })?;
         Ok(PathBuf::from(rendered_path))
     }
 
