@@ -126,7 +126,7 @@ impl App {
         let relative_path = self.strip_template_path(path)?;
         let rendered_relative_path =
             self.render_path(&relative_path, inputs)?;
-        self.write_temnplate(&rendered_relative_path, &rendered_template)?;
+        self.write_template(&rendered_relative_path, &rendered_template)?;
         Ok(())
     }
 
@@ -188,7 +188,7 @@ impl App {
         Ok(PathBuf::from(rendered_path))
     }
 
-    fn write_temnplate(&self, path: &Path, content: &str) -> Result<()> {
+    fn write_template(&self, path: &Path, content: &str) -> Result<()> {
         let output_path = self.output_path.join(path);
         let output_directory = output_path.parent().ok_or_else(|| {
             let message = format!(
