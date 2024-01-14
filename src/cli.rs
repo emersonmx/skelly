@@ -9,8 +9,6 @@ use std::{
 
 const CONFIG_NAME: &str = "skelly.toml";
 
-pub type Input = (String, String);
-
 fn parse_skeleton_config(value: &str) -> Result<Config, String> {
     let path = PathBuf::from(value);
     if !path.is_dir() {
@@ -94,7 +92,7 @@ pub struct Args {
 
     /// Inputs passed to the skeleton
     #[arg(value_parser = parse_key_val::<String, String>)]
-    pub inputs: Vec<Input>,
+    pub inputs: Vec<(String, String)>,
 }
 
 #[cfg(test)]
