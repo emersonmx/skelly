@@ -10,7 +10,7 @@ const CONFIG_NAME: &str = "skelly.toml";
 
 pub type Input = (String, String);
 
-fn parse_config(value: &str) -> Result<Config, String> {
+fn parse_skeleton_config(value: &str) -> Result<Config, String> {
     let path = PathBuf::from(value);
     if !path.is_dir() {
         return Err(format!("'{value}' is not a directory."));
@@ -60,15 +60,15 @@ fn parse_input(value: &str) -> Result<Input, String> {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Where to read the skeleton config
+    /// Which skeleton to use
     #[arg(
-        short,
-        long,
+        short('s'),
+        long("skeleton-path"),
         value_name = "DIRECTORY",
         value_hint = clap::ValueHint::DirPath,
-        value_parser = parse_config
+        value_parser = parse_skeleton_config
     )]
-    pub skeleton: Option<Config>,
+    pub skeleton_config: Option<Config>,
 
     /// Where to output the generated skeleton into
     #[arg(
