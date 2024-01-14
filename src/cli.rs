@@ -34,7 +34,7 @@ fn parse_config(value: &str) -> Result<Config, String> {
     )))?;
 
     Config::from_str(&config_content)
-        .or(Err(format!("unable to parse config.")))
+        .or(Err("unable to parse config.".to_string()))
 }
 
 fn parse_output_path(value: &str) -> Result<PathBuf, String> {
@@ -61,7 +61,13 @@ fn parse_input(value: &str) -> Result<Input, String> {
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     /// Where to read the skeleton config
-    #[arg(short, long, value_name = "DIRECTORY", value_parser = parse_config)]
+    #[arg(
+        short,
+        long,
+        value_name = "DIRECTORY",
+        value_hint = clap::ValueHint::DirPath,
+        value_parser = parse_config
+    )]
     pub skeleton: Option<Config>,
 
     /// Where to output the generated skeleton into
@@ -70,7 +76,8 @@ pub struct Cli {
         long,
         value_name = "DIRECTORY",
         default_value = ".",
-        value_parser = parse_output_path
+        value_hint = clap::ValueHint::DirPath,
+        value_parser = parse_output_path,
     )]
     pub output_path: PathBuf,
 
