@@ -70,7 +70,7 @@ where
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-pub struct Cli {
+pub struct Args {
     /// Which skeleton to use
     #[arg(
         short('s'),
@@ -104,6 +104,6 @@ mod tests {
     #[test]
     fn verify_args() {
         use clap::CommandFactory;
-        Cli::command().debug_assert()
+        Args::command().debug_assert()
     }
 }

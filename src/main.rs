@@ -1,10 +1,11 @@
-mod cli;
-mod config;
+pub mod cli;
+pub mod config;
+pub mod renderer;
 
 use clap::Parser;
-use cli::Cli;
+use cli::Args;
 
 fn main() {
-    let args = Cli::parse();
+    let args = Args::parse();
     eprintln!("args = {:?}", args);
 }
