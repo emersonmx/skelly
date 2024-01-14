@@ -5,19 +5,20 @@ pub mod usecases;
 
 use clap::Parser;
 use cli::Args;
-use usecases::render_content;
 
 fn main() {
     let args = Args::parse();
-    eprintln!("args = {:?}", args);
 
-    let output = render_content::execute(
-        "{{ name }} <{{ email }}>",
-        &[
-            ("name".to_owned(), "John".to_owned()),
-            ("email".to_owned(), "johndoe@example.com".to_owned()),
-        ],
-    );
-
-    eprintln!("output = {:?}", output);
+    match &args {
+        Args { skeleton_config: Some(skeleton_config), .. } => {
+            eprintln!("skeleton_config = {:?}", skeleton_config);
+            eprintln!("output_path = {:?}", args.output_path);
+            eprintln!("inputs = {:?}", args.inputs);
+        }
+        Args { skeleton_config: None, .. } => {
+            println!("NO SKELETON CONFIG!");
+            eprintln!("output_path = {:?}", args.output_path);
+            eprintln!("inputs = {:?}", args.inputs);
+        }
+    }
 }
