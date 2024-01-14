@@ -1,5 +1,5 @@
 use serde::{de, Deserialize, Deserializer, Serialize};
-use std::{collections::HashMap, str::FromStr};
+use std::str::FromStr;
 
 #[derive(thiserror::Error, PartialEq, Debug)]
 pub enum Error {
@@ -7,11 +7,13 @@ pub enum Error {
     UnableToParse,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Input {
     pub name: String,
+
     #[serde(default, deserialize_with = "deserialize_default")]
     pub default: Option<String>,
+
     #[serde(default, deserialize_with = "deserialize_options")]
     pub options: Option<Vec<String>>,
 }
@@ -50,9 +52,7 @@ where
     Ok(Some(values))
 }
 
-pub type InputMap = HashMap<String, Input>;
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub inputs: Vec<Input>,
 }
@@ -62,12 +62,6 @@ impl FromStr for Config {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         toml::from_str(s).or(Err(Error::UnableToParse))
-    }
-}
-
-impl Config {
-    pub fn new(inputs: &[Input]) -> Self {
-        Self { inputs: inputs.to_owned() }
     }
 }
 
@@ -87,11 +81,13 @@ mod tests {
 
         assert_eq!(
             config,
-            Config::new(&[Input {
-                name: "example".to_owned(),
-                default: None,
-                options: None,
-            }]),
+            Config {
+                inputs: vec![Input {
+                    name: "example".to_owned(),
+                    default: None,
+                    options: None,
+                }]
+            },
         );
     }
 
@@ -108,11 +104,13 @@ mod tests {
 
         assert_eq!(
             config,
-            Config::new(&[Input {
-                name: "example".to_owned(),
-                default: Some("42".to_owned()),
-                options: None,
-            }]),
+            Config {
+                inputs: vec![Input {
+                    name: "example".to_owned(),
+                    default: Some("42".to_owned()),
+                    options: None,
+                }]
+            },
         );
     }
 
@@ -129,15 +127,17 @@ mod tests {
 
         assert_eq!(
             config,
-            Config::new(&[Input {
-                name: "example".to_owned(),
-                default: None,
-                options: Some(vec![
-                    "1".to_owned(),
-                    "2".to_owned(),
-                    "3".to_owned()
-                ]),
-            }]),
+            Config {
+                inputs: vec![Input {
+                    name: "example".to_owned(),
+                    default: None,
+                    options: Some(vec![
+                        "1".to_owned(),
+                        "2".to_owned(),
+                        "3".to_owned()
+                    ]),
+                }]
+            },
         );
     }
 }

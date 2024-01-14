@@ -1,19 +1,10 @@
-use app::App;
-use clap::Parser;
-use std::process;
-
-mod app;
+mod config;
 mod cli;
 
-fn main() {
-    let args = cli::Args::parse();
-    let app = App::new(
-        args.inputs,
-        &args.skeleton_path.expect("-s is required"),
-        &args.output_path,
-    );
+use clap::Parser;
+use cli::Cli;
 
-    if app.run().is_err() {
-        process::exit(1);
-    }
+fn main() {
+    let args = Cli::parse();
+    eprintln!("args = {:?}", args);
 }
