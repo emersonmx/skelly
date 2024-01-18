@@ -1,16 +1,13 @@
 use crate::config::Config;
 use clap::Parser;
 use std::error::Error;
-use std::{
-    fs::{self, create_dir_all},
-    path::PathBuf,
-    str::FromStr,
-};
+use std::path::Path;
+use std::{fs::create_dir_all, path::PathBuf};
 
 const CONFIG_NAME: &str = "skelly.toml";
 
 fn parse_skeleton_config(value: &str) -> Result<Config, String> {
-    let path = PathBuf::from(value);
+    let path = Path::new(value);
     if !path.is_dir() {
         return Err(format!("'{value}' is not a directory."));
     }
@@ -27,12 +24,7 @@ fn parse_skeleton_config(value: &str) -> Result<Config, String> {
         ));
     }
 
-    let config_content = fs::read_to_string(&config_path).or(Err(format!(
-        "unable to read config '{}.",
-        &config_path.display()
-    )))?;
-
-    Config::from_str(&config_content)
+    Config::from_file(&config_path)
         .or(Err("unable to parse config.".to_string()))
 }
 
