@@ -72,12 +72,13 @@ fn default_skeleton_path() -> PathBuf {
 
 impl Config {
     pub fn from_file(path: &Path) -> Result<Self, Error> {
-        let skeleton_path = path.parent().ok_or(Error::UnableToReadFile)?;
+        let skeleton_path =
+            path.parent().ok_or(Error::UnableToReadFile)?.to_owned();
         let content =
             fs::read_to_string(path).or(Err(Error::UnableToReadFile))?;
         let result: Self =
             toml::from_str(&content).or(Err(Error::UnableToParse))?;
-        Ok(Self { skeleton_path: skeleton_path.to_owned(), ..result })
+        Ok(Self { skeleton_path, ..result })
     }
 }
 
