@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const DEFAULT_SKELETON_PATH: &str = "skeleton";
+const DEFAULT_TEMPLATE_DIRECTORY: &str = "skeleton";
 
 fn value_to_string(value: &toml::Value) -> String {
     match value {
@@ -61,24 +61,33 @@ where
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Config {
-    #[serde(skip, default = "default_skeleton_path")]
-    pub skeleton_path: PathBuf,
+    #[serde(skip, default = "default_skeleton_directory")]
+    pub skeleton_directory: PathBuf,
+    #[serde(skip, default = "default_template_directory")]
+    pub template_directory: PathBuf,
+
     pub inputs: Vec<Input>,
 }
 
-fn default_skeleton_path() -> PathBuf {
-    Path::new(DEFAULT_SKELETON_PATH).to_owned()
+fn default_skeleton_directory() -> PathBuf {
+    Path::new(".").to_owned()
+}
+
+fn default_template_directory() -> PathBuf {
+    Path::new(DEFAULT_TEMPLATE_DIRECTORY).to_owned()
 }
 
 impl Config {
     pub fn from_file(path: &Path) -> Result<Self, Error> {
-        let skeleton_path =
-            path.parent().ok_or(Error::UnableToReadFile)?.to_owned();
+        let skeleton_directory =
+            path.parent().unwrap_or(&default_skeleton_directory()).to_owned();
+        let template_directory =
+            skeleton_directory.join(default_template_directory()).to_owned();
         let content =
             fs::read_to_string(path).or(Err(Error::UnableToReadFile))?;
         let result: Self =
             toml::from_str(&content).or(Err(Error::UnableToParse))?;
-        Ok(Self { skeleton_path, ..result })
+        Ok(Self { skeleton_directory, template_directory, ..result })
     }
 }
 
@@ -96,6 +105,14 @@ mod tests {
         }
     }
 
+    fn default_config() -> Config {
+        Config {
+            skeleton_directory: default_skeleton_directory(),
+            template_directory: default_template_directory(),
+            inputs: Vec::new(),
+        }
+    }
+
     #[test]
     fn parse_from_string() {
         let config = Config::from_str(
@@ -109,12 +126,12 @@ mod tests {
         assert_eq!(
             config,
             Config {
-                skeleton_path: Path::new(DEFAULT_SKELETON_PATH).to_owned(),
                 inputs: vec![Input {
                     name: "example".to_owned(),
                     default: None,
                     options: None,
                 }],
+                ..default_config()
             },
         );
     }
@@ -133,12 +150,12 @@ mod tests {
         assert_eq!(
             config,
             Config {
-                skeleton_path: Path::new(DEFAULT_SKELETON_PATH).to_owned(),
                 inputs: vec![Input {
                     name: "example".to_owned(),
                     default: Some("42".to_owned()),
                     options: None,
                 }],
+                ..default_config()
             },
         );
     }
@@ -157,7 +174,6 @@ mod tests {
         assert_eq!(
             config,
             Config {
-                skeleton_path: Path::new(DEFAULT_SKELETON_PATH).to_owned(),
                 inputs: vec![Input {
                     name: "example".to_owned(),
                     default: None,
@@ -167,6 +183,7 @@ mod tests {
                         "3".to_owned()
                     ]),
                 }],
+                ..default_config()
             },
         );
     }
