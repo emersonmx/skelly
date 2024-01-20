@@ -1,7 +1,6 @@
 pub mod cli;
 pub mod config;
 pub mod renderer;
-pub mod usecases;
 pub mod validation;
 
 use clap::Parser;
