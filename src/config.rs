@@ -61,16 +61,10 @@ where
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Config {
-    #[serde(skip, default = "default_skeleton_directory")]
-    pub skeleton_directory: PathBuf,
     #[serde(skip, default = "default_template_directory")]
     pub template_directory: PathBuf,
 
     pub inputs: Vec<Input>,
-}
-
-fn default_skeleton_directory() -> PathBuf {
-    Path::new(".").to_owned()
 }
 
 fn default_template_directory() -> PathBuf {
@@ -80,14 +74,14 @@ fn default_template_directory() -> PathBuf {
 impl Config {
     pub fn from_file(path: &Path) -> Result<Self, Error> {
         let skeleton_directory =
-            path.parent().unwrap_or(&default_skeleton_directory()).to_owned();
+            path.parent().unwrap_or(Path::new(".")).to_owned();
         let template_directory =
             skeleton_directory.join(default_template_directory()).to_owned();
         let content =
             fs::read_to_string(path).or(Err(Error::UnableToReadFile))?;
         let result: Self =
             toml::from_str(&content).or(Err(Error::UnableToParse))?;
-        Ok(Self { skeleton_directory, template_directory, ..result })
+        Ok(Self { template_directory, ..result })
     }
 }
 
@@ -107,7 +101,6 @@ mod tests {
 
     fn default_config() -> Config {
         Config {
-            skeleton_directory: default_skeleton_directory(),
             template_directory: default_template_directory(),
             inputs: Vec::new(),
         }
