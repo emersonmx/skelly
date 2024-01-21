@@ -28,10 +28,10 @@ fn handle_actions(
 ) -> Result<(), String> {
     match (&args, use_input_terminal, use_output_terminal) {
         (Args { skeleton_config: Some(skeleton_config), .. }, true, true) => {
-            handle_render_skeleton(&args, skeleton_config)?
+            render_skeleton_action(&args, skeleton_config)?
         }
         (Args { skeleton_config: Some(_), .. }, false, true) => {
-            handle_skeleton_and_stdin()?
+            skeleton_and_stdin_action()?
         }
         _ => println!("WAT?!"),
     }
@@ -39,7 +39,7 @@ fn handle_actions(
     Ok(())
 }
 
-fn handle_render_skeleton(
+fn render_skeleton_action(
     args: &Args,
     config: &config::Config,
 ) -> Result<(), String> {
@@ -77,7 +77,7 @@ fn handle_render_skeleton(
     Ok(())
 }
 
-fn handle_skeleton_and_stdin() -> Result<(), String> {
+fn skeleton_and_stdin_action() -> Result<(), String> {
     let msg = "Unable to decide between skeleton and standard input.";
     eprintln!("{msg}");
     Err(msg)?
