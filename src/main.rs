@@ -30,6 +30,9 @@ fn handle_actions(
         (Args { skeleton_config: Some(skeleton_config), .. }, true, true) => {
             render_skeleton_action(&args, skeleton_config)?
         }
+        (Args { skeleton_config: Some(skeleton_config), .. }, true, false) => {
+            skeleton_to_stdout_action(&args, skeleton_config)?
+        }
         (Args { skeleton_config: Some(_), .. }, false, true) => {
             skeleton_and_stdin_action()?
         }
@@ -74,6 +77,15 @@ fn render_skeleton_action(
         error.to_string()
     })?;
 
+    Ok(())
+}
+
+fn skeleton_to_stdout_action(
+    args: &Args,
+    config: &config::Config,
+) -> Result<(), String> {
+    eprintln!("args = {:?}", args);
+    eprintln!("config = {:?}", config);
     Ok(())
 }
 
