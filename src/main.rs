@@ -16,10 +16,15 @@ fn main() {
 
     match (&args, use_input_terminal, use_output_terminal) {
         (Args { skeleton_config: Some(skeleton_config), .. }, true, true) => {
-            usecases::render_skeleton::execute(
+            let cleaned_inputs = validation::validate_inputs(
                 &args.inputs,
+                &skeleton_config.inputs,
+            )
+            .unwrap();
+            usecases::render_skeleton::execute(
+                &skeleton_config.template_directory,
+                &cleaned_inputs,
                 &args.output_path,
-                skeleton_config,
             )
             .unwrap();
         }

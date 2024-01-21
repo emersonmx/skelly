@@ -5,32 +5,26 @@ use std::{
 
 use walkdir::WalkDir;
 
-use crate::{config, renderer, validation};
+use crate::renderer;
 
 pub fn execute(
-    user_inputs: &[(String, String)],
+    template_directory: &Path,
+    inputs: &[(String, String)],
     output_path: &Path,
-    config: &config::Config,
 ) -> Result<(), String> {
-    let cleaned_inputs =
-        validation::validate_inputs(user_inputs, &config.inputs).unwrap();
-
-    WalkDir::new(&config.template_directory)
+    WalkDir::new(&template_directory)
         .min_depth(1)
         .into_iter()
         .filter_map(|e| e.ok())
         .map(|e| e.path().to_owned())
         .filter(|p| !p.is_dir())
         .for_each(|path| {
-            let rendered_template =
-                render_template(&path, &cleaned_inputs).unwrap();
-            let relative_path = strip_path_prefix(
-                &path,
-                config.template_directory.to_str().unwrap(),
-            )
-            .unwrap();
+            let rendered_template = render_template(&path, &inputs).unwrap();
+            let relative_path =
+                strip_path_prefix(&path, template_directory.to_str().unwrap())
+                    .unwrap();
             let rendered_relative_path =
-                render_path(&relative_path, &cleaned_inputs).unwrap();
+                render_path(&relative_path, &inputs).unwrap();
 
             write_temnplate(
                 &PathBuf::from(rendered_relative_path),
