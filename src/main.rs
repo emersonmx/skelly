@@ -28,49 +28,57 @@ fn handle_actions(
 ) -> Result<(), String> {
     match (&args, use_input_terminal, use_output_terminal) {
         (Args { skeleton_config: Some(skeleton_config), .. }, true, true) => {
-            let cleaned_inputs = validation::validate_inputs(
-                &args.inputs,
-                &skeleton_config.inputs,
-            )
-            .map_err(|error| {
-                let errors = error.0.iter().fold(String::new(), |acc, e| {
-                    let msg = match e {
-                        validation::ErrorType::MissingInput(name) => {
-                            format!("Missing input '{}'.", name)
-                        }
-                        validation::ErrorType::InvalidOption(key, value) => {
-                            format!(
-                                "Invalid option '{}' to input '{}'.",
-                                value, key
-                            )
-                        }
-                    };
-                    format!("{}{}\n", acc, msg)
-                });
-
-                eprint!("{errors}");
-
-                errors
-            })?;
-            usecases::render_skeleton::execute(
-                &skeleton_config.template_directory,
-                &cleaned_inputs,
-                &args.output_path,
-            )
-            .map_err(|error| {
-                eprintln!("{}", error.0);
-                error.to_string()
-            })?;
+            handle_render_skeleton(&args, skeleton_config)?
         }
-        (Args { skeleton_config: None, .. }, _, _) => {
-            println!("NO SKELETON CONFIG!");
-            eprintln!("output_path = {:?}", args.output_path);
-            eprintln!("inputs = {:?}", args.inputs);
+        (Args { skeleton_config: Some(_), .. }, false, true) => {
+            handle_skeleton_and_stdin()?
         }
-        _ => {
-            println!("WAT?!");
-        }
+        _ => println!("WAT?!"),
     }
 
     Ok(())
+}
+
+fn handle_render_skeleton(
+    args: &Args,
+    config: &config::Config,
+) -> Result<(), String> {
+    let cleaned_inputs = validation::validate_inputs(
+        &args.inputs,
+        &config.inputs,
+    )
+    .map_err(|error| {
+        let errors = error.0.iter().fold(String::new(), |acc, e| {
+            let msg = match e {
+                validation::ErrorType::MissingInput(name) => {
+                    format!("Missing input '{}'.", name)
+                }
+                validation::ErrorType::InvalidOption(key, value) => {
+                    format!("Invalid option '{}' to input '{}'.", value, key)
+                }
+            };
+            format!("{}{}\n", acc, msg)
+        });
+
+        eprint!("{errors}");
+
+        errors
+    })?;
+    usecases::render_skeleton::execute(
+        &config.template_directory,
+        &cleaned_inputs,
+        &args.output_path,
+    )
+    .map_err(|error| {
+        eprintln!("{}", error.0);
+        error.to_string()
+    })?;
+
+    Ok(())
+}
+
+fn handle_skeleton_and_stdin() -> Result<(), String> {
+    let msg = "Unable to decide between skeleton and standard input.";
+    eprintln!("{msg}");
+    Err(msg)?
 }
