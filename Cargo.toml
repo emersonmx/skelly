@@ -12,6 +12,5 @@ clap = { version = "4.4.7", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 tera = "1"
 thiserror = "1.0"
-anyhow = "1.0"
 toml = "0.8.6"
 walkdir = "2"
