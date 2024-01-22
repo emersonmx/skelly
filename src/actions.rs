@@ -9,7 +9,7 @@ pub fn render_skeleton(
     usecases::render_skeleton::execute(
         adapters::file_finder(&config.template_directory),
         |path| {
-            adapters::walk_dir_file_reader(
+            adapters::file_reader(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,

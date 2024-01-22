@@ -42,7 +42,7 @@ pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> {
         .filter(|p| !p.is_dir())
 }
 
-pub fn walk_dir_file_reader(
+pub fn file_reader(
     path: &Path,
     inputs: &[(String, String)],
     template_directory: &Path,
