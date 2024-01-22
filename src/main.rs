@@ -1,3 +1,4 @@
+pub mod actions;
 pub mod cli;
 pub mod config;
 pub mod renderer;
@@ -28,69 +29,16 @@ fn handle_actions(
 ) -> Result<(), String> {
     match (&args, use_input_terminal, use_output_terminal) {
         (Args { skeleton_config: Some(skeleton_config), .. }, true, true) => {
-            render_skeleton_action(&args, skeleton_config)?
+            actions::render_skeleton(&args, skeleton_config)?
         }
         (Args { skeleton_config: Some(skeleton_config), .. }, true, false) => {
-            skeleton_to_stdout_action(&args, skeleton_config)?
+            actions::skeleton_to_stdout(&args, skeleton_config)?
         }
         (Args { skeleton_config: Some(_), .. }, false, true) => {
-            skeleton_and_stdin_action()?
+            actions::skeleton_and_stdin()?
         }
         _ => println!("WAT?!"),
     }
 
     Ok(())
-}
-
-fn render_skeleton_action(
-    args: &Args,
-    config: &config::Config,
-) -> Result<(), String> {
-    let cleaned_inputs = validation::validate_inputs(
-        &args.inputs,
-        &config.inputs,
-    )
-    .map_err(|error| {
-        let errors = error.0.iter().fold(String::new(), |acc, e| {
-            let msg = match e {
-                validation::ErrorType::MissingInput(name) => {
-                    format!("Missing input '{}'.", name)
-                }
-                validation::ErrorType::InvalidOption(key, value) => {
-                    format!("Invalid option '{}' to input '{}'.", value, key)
-                }
-            };
-            format!("{}{}\n", acc, msg)
-        });
-
-        eprint!("{errors}");
-
-        errors
-    })?;
-    usecases::render_skeleton::execute(
-        &config.template_directory,
-        &cleaned_inputs,
-        &args.output_path,
-    )
-    .map_err(|error| {
-        eprintln!("{}", error.0);
-        error.to_string()
-    })?;
-
-    Ok(())
-}
-
-fn skeleton_to_stdout_action(
-    args: &Args,
-    config: &config::Config,
-) -> Result<(), String> {
-    eprintln!("args = {:?}", args);
-    eprintln!("config = {:?}", config);
-    Ok(())
-}
-
-fn skeleton_and_stdin_action() -> Result<(), String> {
-    let msg = "Unable to decide between skeleton and standard input.";
-    eprintln!("{msg}");
-    Err(msg)?
 }
