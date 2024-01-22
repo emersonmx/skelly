@@ -43,11 +43,7 @@ pub fn render_skeleton(
             )
         },
         |path, content| {
-            adapters::file_writer(
-                path,
-                &content,
-                &args.output_path,
-            )
+            adapters::file_writer(path, &content, &args.output_path)
         },
     )
     .map_err(|error| {

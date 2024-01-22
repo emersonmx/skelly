@@ -21,23 +21,20 @@ pub fn file_reader(
     let rendered_template = render_template(path, inputs).map_err(|_| {
         Error(format!("Unable to render file '{}'.", path.display()))
     })?;
-    let tmp_dir = template_directory.to_str().ok_or(Error(format!(
-        "Unable to convert path '{}' to string",
-        template_directory.display(),
-    )))?;
-    let relative_path = strip_path_prefix(path, tmp_dir).map_err(|_| {
-        Error(format!(
-            "Unable to strip template path '{}' from path '{}'.",
-            template_directory.display(),
-            path.display()
-        ))
-    })?;
+    let relative_path =
+        path.strip_prefix(template_directory).map_err(|_| {
+            Error(format!(
+                "Unable to strip template path '{}' from path '{}'.",
+                template_directory.display(),
+                path.display()
+            ))
+        })?;
     let rendered_relative_path =
-        render_path(&relative_path, inputs).map_err(|_| {
+        render_path(relative_path, inputs).map_err(|_| {
             Error(format!("Unable to render path '{}'.", path.display()))
         })?;
 
-    Ok((PathBuf::from(rendered_relative_path), rendered_template))
+    Ok((rendered_relative_path, rendered_template))
 }
 
 fn render_template(
@@ -51,25 +48,14 @@ fn render_template(
     Ok(rendered_content)
 }
 
-fn strip_path_prefix(path: &Path, prefix: &str) -> Result<PathBuf, String> {
-    let relative_path = path.strip_prefix(prefix).map_err(|_| {
-        format!(
-            "Unable to strip template path '{}' from path '{}'",
-            prefix,
-            path.display()
-        )
-    })?;
-    Ok(PathBuf::from(relative_path))
-}
-
 fn render_path(
     path: &Path,
     inputs: &[(String, String)],
-) -> Result<String, String> {
+) -> Result<PathBuf, String> {
     let raw_path = path.to_str().ok_or("Unable to convert path to string.")?;
     let rendered_path = renderer::render(raw_path, inputs)
         .map_err(|_| "Unable to render path.")?;
-    Ok(rendered_path)
+    Ok(PathBuf::from(rendered_path))
 }
 
 pub fn file_writer(
