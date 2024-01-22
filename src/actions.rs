@@ -41,9 +41,11 @@ pub fn render_skeleton(
                 &cleaned_inputs,
                 &config.template_directory,
             )
+            .map_err(|e| usecases::render_skeleton::Error(e.to_string()))
         },
         |path, content| {
             adapters::file_writer(path, &content, &args.output_path)
+                .map_err(|e| usecases::render_skeleton::Error(e.to_string()))
         },
     )
     .map_err(|error| {
@@ -68,8 +70,12 @@ pub fn skeleton_to_stdout(
                 &cleaned_inputs,
                 &config.template_directory,
             )
+            .map_err(|e| usecases::render_skeleton::Error(e.to_string()))
         },
-        |_, content| adapters::text_writer(&content),
+        |_, content| {
+            adapters::text_writer(content);
+            Ok(())
+        },
     )
     .map_err(|error| {
         eprintln!("{}", error.0);
@@ -86,7 +92,21 @@ pub fn skeleton_and_stdin_error() -> Result<(), String> {
 }
 
 pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
-    eprintln!("args = {:?}", args);
+    usecases::render_text::execute(
+        || {
+            let text = adapters::text_reader(&args.inputs)
+                .map_err(|e| usecases::render_text::Error(e.to_string()))?;
+            Ok(text)
+        },
+        |content| {
+            adapters::text_writer(content);
+            Ok(())
+        },
+    )
+    .map_err(|error| {
+        eprintln!("{}", error.0);
+        error.to_string()
+    })?;
     Ok(())
 }
 

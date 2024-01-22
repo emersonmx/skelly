@@ -1,8 +1,8 @@
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use crate::renderer;
-use crate::usecases::render_skeleton::Error;
 
 pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> {
     walkdir::WalkDir::new(path)
@@ -17,22 +17,19 @@ pub fn file_reader(
     path: &Path,
     inputs: &[(String, String)],
     template_directory: &Path,
-) -> Result<(PathBuf, String), Error> {
-    let rendered_template = render_template(path, inputs).map_err(|_| {
-        Error(format!("Unable to render file '{}'.", path.display()))
-    })?;
+) -> Result<(PathBuf, String), String> {
+    let rendered_template = render_template(path, inputs)
+        .map_err(|_| format!("Unable to render file '{}'.", path.display()))?;
     let relative_path =
         path.strip_prefix(template_directory).map_err(|_| {
-            Error(format!(
+            format!(
                 "Unable to strip template path '{}' from path '{}'.",
                 template_directory.display(),
                 path.display()
-            ))
+            )
         })?;
-    let rendered_relative_path =
-        render_path(relative_path, inputs).map_err(|_| {
-            Error(format!("Unable to render path '{}'.", path.display()))
-        })?;
+    let rendered_relative_path = render_path(relative_path, inputs)
+        .map_err(|_| format!("Unable to render path '{}'.", path.display()))?;
 
     Ok((rendered_relative_path, rendered_template))
 }
@@ -58,32 +55,35 @@ fn render_path(
     Ok(PathBuf::from(rendered_path))
 }
 
+pub fn text_reader(inputs: &[(String, String)]) -> Result<String, String> {
+    let mut content = String::new();
+    std::io::stdin()
+        .read_to_string(&mut content)
+        .map_err(|_| "Unable to read from stdin.")?;
+    let rendered_content = renderer::render(&content, inputs)
+        .map_err(|_| "Unable to render template")?;
+    Ok(rendered_content)
+}
+
 pub fn file_writer(
     path: &Path,
     content: &str,
     output_path: &Path,
-) -> Result<(), Error> {
+) -> Result<(), String> {
     let output_path = output_path.join(path);
-    let output_directory = output_path.parent().ok_or(Error(format!(
+    let output_directory = output_path.parent().ok_or(format!(
         "Unable to fetch parent directory of '{}'.",
         path.display()
-    )))?;
+    ))?;
     fs::create_dir_all(output_directory).map_err(|_| {
-        Error(format!(
-            "Unable to create path '{}'.",
-            output_directory.display()
-        ))
+        format!("Unable to create path '{}'.", output_directory.display())
     })?;
     fs::write(&output_path, content).map_err(|_| {
-        Error(format!(
-            "Unable to write content to path '{}'.",
-            &output_path.display()
-        ))
+        format!("Unable to write content to path '{}'.", &output_path.display())
     })?;
     Ok(())
 }
 
-pub fn text_writer(content: &str) -> Result<(), Error> {
+pub fn text_writer(content: String) {
     print!("{content}");
-    Ok(())
 }
