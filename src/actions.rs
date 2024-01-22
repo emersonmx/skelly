@@ -1,5 +1,32 @@
 use crate::{adapters, cli, config, usecases};
 
+pub fn handle(
+    args: cli::Args,
+    use_input_terminal: bool,
+    use_output_terminal: bool,
+) -> Result<(), String> {
+    match (&args, use_input_terminal, use_output_terminal) {
+        (
+            cli::Args { skeleton_config: Some(skeleton_config), .. },
+            true,
+            true,
+        ) => render_skeleton(&args, skeleton_config)?,
+        (
+            cli::Args { skeleton_config: Some(skeleton_config), .. },
+            true,
+            false,
+        ) => skeleton_to_stdout(&args, skeleton_config)?,
+        (cli::Args { skeleton_config: Some(_), .. }, false, _) => {
+            skeleton_and_stdin_error()?
+        }
+        (cli::Args { skeleton_config: None, .. }, _, _) => {
+            stdin_to_stdout(&args)?
+        }
+    }
+
+    Ok(())
+}
+
 pub fn render_skeleton(
     args: &cli::Args,
     config: &config::Config,
@@ -43,5 +70,6 @@ pub fn skeleton_and_stdin_error() -> Result<(), String> {
 }
 
 pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
+    eprintln!("args = {:?}", args);
     Ok(())
 }
