@@ -42,6 +42,6 @@ pub fn skeleton_and_stdin_error() -> Result<(), String> {
     Err(msg)?
 }
 
-pub fn stdin_to_stdout() -> Result<(), String> {
+pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
     Ok(())
 }

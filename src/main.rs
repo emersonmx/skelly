@@ -39,7 +39,7 @@ fn handle_actions(
             actions::skeleton_and_stdin_error()?
         }
         (Args { skeleton_config: None, .. }, _, _) => {
-            actions::stdin_to_stdout()?
+            actions::stdin_to_stdout(&args)?
         }
         _ => unreachable!(),
     }
