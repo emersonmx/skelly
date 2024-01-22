@@ -6,7 +6,7 @@ pub mod renderer;
 pub mod usecases;
 pub mod validation;
 
-use std::io::IsTerminal;
+use std::{io::IsTerminal, intrinsics::unreachable};
 
 use clap::Parser;
 use cli::Args;
@@ -41,7 +41,7 @@ fn handle_actions(
         (Args { skeleton_config: None, .. }, _, _) => {
             actions::stdin_to_stdout()?
         }
-        _ => println!("WAT?!"),
+        _ => unreachable!(),
     }
 
     Ok(())
