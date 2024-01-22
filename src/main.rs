@@ -36,7 +36,10 @@ fn handle_actions(
             actions::skeleton_to_stdout(&args, skeleton_config)?
         }
         (Args { skeleton_config: Some(_), .. }, false, true) => {
-            actions::skeleton_and_stdin()?
+            actions::skeleton_and_stdin_error()?
+        }
+        (Args { skeleton_config: None, .. }, _, _) => {
+            actions::stdin_to_stdout()?
         }
         _ => println!("WAT?!"),
     }

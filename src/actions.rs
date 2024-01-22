@@ -36,8 +36,12 @@ pub fn skeleton_to_stdout(
     Ok(())
 }
 
-pub fn skeleton_and_stdin() -> Result<(), String> {
+pub fn skeleton_and_stdin_error() -> Result<(), String> {
     let msg = "Unable to decide between skeleton and standard input.";
     eprintln!("{msg}");
     Err(msg)?
+}
+
+pub fn stdin_to_stdout() -> Result<(), String> {
+    Ok(())
 }
