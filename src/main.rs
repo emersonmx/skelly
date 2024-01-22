@@ -1,10 +1,10 @@
-pub mod actions;
-pub mod adapters;
-pub mod cli;
-pub mod config;
-pub mod renderer;
-pub mod usecases;
-pub mod validation;
+mod actions;
+mod adapters;
+mod cli;
+mod config;
+mod renderer;
+mod usecases;
+mod validation;
 
 use std::io::IsTerminal;
 
