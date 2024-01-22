@@ -40,12 +40,18 @@ pub fn render_skeleton(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
+                args.verbose,
             )
             .map_err(usecases::render_skeleton::Error)
         },
         |path, content| {
-            adapters::file_writer(path, &content, &args.output_path)
-                .map_err(usecases::render_skeleton::Error)
+            adapters::file_writer(
+                path,
+                &content,
+                &args.output_path,
+                args.verbose,
+            )
+            .map_err(usecases::render_skeleton::Error)
         },
     )
     .map_err(|error| {
@@ -69,6 +75,7 @@ pub fn skeleton_to_stdout(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
+                args.verbose,
             )
             .map_err(usecases::render_skeleton::Error)
         },
@@ -94,7 +101,7 @@ pub fn skeleton_and_stdin_error() -> Result<(), String> {
 pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            let text = adapters::text_reader(&args.inputs)
+            let text = adapters::text_reader(&args.inputs, args.verbose)
                 .map_err(usecases::render_text::Error)?;
             Ok(text)
         },
