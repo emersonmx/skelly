@@ -1,34 +1,23 @@
-use crate::{cli, config, usecases, validation};
+use crate::{adapters, cli, config, usecases};
 
 pub fn render_skeleton(
     args: &cli::Args,
     config: &config::Config,
 ) -> Result<(), String> {
-    let cleaned_inputs = validation::validate_inputs(
-        &args.inputs,
-        &config.inputs,
-    )
-    .map_err(|error| {
-        let errors = error.0.iter().fold(String::new(), |acc, e| {
-            let msg = match e {
-                validation::ErrorType::MissingInput(name) => {
-                    format!("Missing input '{}'.", name)
-                }
-                validation::ErrorType::InvalidOption(key, value) => {
-                    format!("Invalid option '{}' to input '{}'.", value, key)
-                }
-            };
-            format!("{}{}\n", acc, msg)
-        });
+    let cleaned_inputs = adapters::clean_inputs(&args.inputs, &config.inputs)?;
 
-        eprint!("{errors}");
-
-        errors
-    })?;
     usecases::render_skeleton::execute(
-        &config.template_directory,
-        &cleaned_inputs,
-        &args.output_path,
+        adapters::file_finder(&config.template_directory),
+        |path| {
+            adapters::walk_dir_file_reader(
+                path,
+                &cleaned_inputs,
+                &config.template_directory,
+            )
+        },
+        |path, content| {
+            adapters::file_writer(path, &content, &args.output_path)
+        },
     )
     .map_err(|error| {
         eprintln!("{}", error.0);
