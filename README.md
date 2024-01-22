@@ -35,7 +35,7 @@ mkdir skeleton
 
 # Create a template file
 cat > skeleton/greetings.txt << EOF
-Hello {{ skelly.full_name }}
+Hello {{ full_name }}
 EOF
 
 # Use it!
