@@ -34,16 +34,16 @@ pub fn render_skeleton(
     let cleaned_inputs = clean_inputs(&args.inputs, &config.inputs)?;
 
     usecases::render_skeleton::execute(
-        adapters::render_skeleton::file_finder(&config.template_directory),
+        adapters::file_finder(&config.template_directory),
         |path| {
-            adapters::render_skeleton::file_reader(
+            adapters::file_reader(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
             )
         },
         |path, content| {
-            adapters::render_skeleton::file_writer(
+            adapters::file_writer(
                 path,
                 &content,
                 &args.output_path,
