@@ -1,11 +1,10 @@
 use std::collections::HashMap;
+use std::error::Error as StdError;
 use tera::{Context, Tera};
 
 #[derive(thiserror::Error, PartialEq, Debug)]
-pub enum Error {
-    #[error("Failed to render")]
-    FailedToRender,
-}
+#[error("Failed to render")]
+pub struct Error(pub String);
 
 pub fn render(
     template: &str,
@@ -21,7 +20,13 @@ pub fn render(
 
     match Tera::one_off(template, &context, false) {
         Ok(r) => Ok(r),
-        Err(_) => Err(Error::FailedToRender),
+        Err(e) => {
+            let error = e
+                .source()
+                .map(|s| s.to_string())
+                .unwrap_or("unknown error".to_owned());
+            Err(Error(error))
+        }
     }
 }
 
@@ -48,8 +53,9 @@ mod tests {
 
     #[test]
     fn error_when_missing_input() {
-        let result = render("Hello {{ skelly.name }}", &[]);
+        let expected = "Variable `name` not found in context while rendering '__tera_one_off'".to_owned();
+        let result = render("Hello {{ name }}", &[]);
 
-        assert_eq!(result, Err(Error::FailedToRender));
+        assert_eq!(result, Err(Error(expected)));
     }
 }

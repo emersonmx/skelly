@@ -7,15 +7,22 @@ A simple scaffold tool written in Rust.
 ```
 Usage: skelly [OPTIONS] <SKELETON_PATH> [INPUTS]...
 
-skelly ~/path/to/skeleton input1=one input2=two inputN=N
+# Output a skeleton to files
+skelly -s ~/path/to/skeleton input1=one input2=two inputN=N
+
+# Output a skeleton to stdout
+skelly -s ~/path/to/skeleton input1=one input2=two inputN=N | cat
+
+# Output a template from stdin to stdout
+echo "{{ name }} <{{ email }}>" | skelly name=john email=john@example.com 
 ```
 
-## Template creation
+## Template creation and usage
 
 ```sh
 # Create a template directory
-mkdir my_template
-cd my_template
+mkdir /tmp/my_template
+cd /tmp/my_template
 
 # Create a skelly.toml
 cat > skelly.toml << EOF
@@ -26,15 +33,14 @@ EOF
 # Create a skeleton directory
 mkdir skeleton
 
-# Create a template
+# Create a template file
 cat > skeleton/greetings.txt << EOF
 Hello {{ skelly.full_name }}
 EOF
 
 # Use it!
-cd /tmp
-mkdir my_awesome_project
-cd my_awesome_project
+mkdir /tmp/my_awesome_project
+cd /tmp/my_awesome_project
 
-skelly /path/to/template full_name='John Doe'
+skelly -s /tmp/my_template full_name='John Doe'
 ```

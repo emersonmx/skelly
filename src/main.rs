@@ -1,19 +1,23 @@
-use app::App;
-use clap::Parser;
-use std::process;
+pub mod actions;
+pub mod adapters;
+pub mod cli;
+pub mod config;
+pub mod renderer;
+pub mod usecases;
+pub mod validation;
 
-mod app;
-mod cli;
+use std::io::IsTerminal;
+
+use clap::Parser;
 
 fn main() {
-    let args = cli::Args::parse();
-    let app = App::new(
-        args.inputs,
-        &args.skeleton_path.expect("-s is required"),
-        &args.output_path,
+    let response = actions::handle(
+        cli::Args::parse(),
+        std::io::stdin().is_terminal(),
+        std::io::stdout().is_terminal(),
     );
 
-    if app.run().is_err() {
-        process::exit(1);
+    if response.is_err() {
+        std::process::exit(1);
     }
 }
