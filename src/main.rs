@@ -35,7 +35,7 @@ fn handle_actions(
         (Args { skeleton_config: Some(skeleton_config), .. }, true, false) => {
             actions::skeleton_to_stdout(&args, skeleton_config)?
         }
-        (Args { skeleton_config: Some(_), .. }, false, true) => {
+        (Args { skeleton_config: Some(_), .. }, false, _) => {
             actions::skeleton_and_stdin_error()?
         }
         (Args { skeleton_config: None, .. }, _, _) => {
