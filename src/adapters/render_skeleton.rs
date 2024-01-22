@@ -1,37 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::usecases::render_skeleton::Error as RenderSkeletonError;
-use crate::{config, renderer, validation};
-
-pub fn clean_inputs(
-    user_inputs: &[(String, String)],
-    config_inputs: &[config::Input],
-) -> Result<Vec<(String, String)>, String> {
-    let inputs = validation::validate_inputs(user_inputs, config_inputs)
-        .map_err(|error| {
-            let errors = error.0.iter().fold(String::new(), |acc, e| {
-                let msg = match e {
-                    validation::ErrorType::MissingInput(name) => {
-                        format!("Missing input '{}'.", name)
-                    }
-                    validation::ErrorType::InvalidOption(key, value) => {
-                        format!(
-                            "Invalid option '{}' to input '{}'.",
-                            value, key
-                        )
-                    }
-                };
-                format!("{}{}\n", acc, msg)
-            });
-
-            eprint!("{errors}");
-
-            errors
-        })?;
-
-    Ok(inputs)
-}
+use crate::renderer;
+use crate::usecases::render_skeleton::Error;
 
 pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> {
     walkdir::WalkDir::new(path)
@@ -46,20 +17,16 @@ pub fn file_reader(
     path: &Path,
     inputs: &[(String, String)],
     template_directory: &Path,
-) -> Result<(PathBuf, String), RenderSkeletonError> {
+) -> Result<(PathBuf, String), Error> {
     let rendered_template = render_template(path, inputs).map_err(|_| {
-        RenderSkeletonError(format!(
-            "Unable to render file '{}'.",
-            path.display()
-        ))
+        Error(format!("Unable to render file '{}'.", path.display()))
     })?;
-    let tmp_dir =
-        template_directory.to_str().ok_or(RenderSkeletonError(format!(
-            "Unable to convert path '{}' to string",
-            template_directory.display(),
-        )))?;
+    let tmp_dir = template_directory.to_str().ok_or(Error(format!(
+        "Unable to convert path '{}' to string",
+        template_directory.display(),
+    )))?;
     let relative_path = strip_path_prefix(path, tmp_dir).map_err(|_| {
-        RenderSkeletonError(format!(
+        Error(format!(
             "Unable to strip template path '{}' from path '{}'.",
             template_directory.display(),
             path.display()
@@ -67,10 +34,7 @@ pub fn file_reader(
     })?;
     let rendered_relative_path =
         render_path(&relative_path, inputs).map_err(|_| {
-            RenderSkeletonError(format!(
-                "Unable to render path '{}'.",
-                path.display()
-            ))
+            Error(format!("Unable to render path '{}'.", path.display()))
         })?;
 
     Ok((PathBuf::from(rendered_relative_path), rendered_template))
@@ -112,19 +76,20 @@ pub fn file_writer(
     path: &Path,
     content: &str,
     output_path: &Path,
-) -> Result<(), RenderSkeletonError> {
+) -> Result<(), Error> {
     let output_path = output_path.join(path);
-    let output_directory = output_path.parent().ok_or(RenderSkeletonError(
-        format!("Unable to fetch parent directory of '{}'.", path.display()),
-    ))?;
+    let output_directory = output_path.parent().ok_or(Error(format!(
+        "Unable to fetch parent directory of '{}'.",
+        path.display()
+    )))?;
     fs::create_dir_all(output_directory).map_err(|_| {
-        RenderSkeletonError(format!(
+        Error(format!(
             "Unable to create path '{}'.",
             output_directory.display()
         ))
     })?;
     fs::write(&output_path, content).map_err(|_| {
-        RenderSkeletonError(format!(
+        Error(format!(
             "Unable to write content to path '{}'.",
             &output_path.display()
         ))

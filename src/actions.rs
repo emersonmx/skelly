@@ -1,4 +1,4 @@
-use crate::{adapters, cli, config, usecases};
+use crate::{adapters, cli, config, usecases, validation};
 
 pub fn handle(
     args: cli::Args,
@@ -31,19 +31,23 @@ pub fn render_skeleton(
     args: &cli::Args,
     config: &config::Config,
 ) -> Result<(), String> {
-    let cleaned_inputs = adapters::clean_inputs(&args.inputs, &config.inputs)?;
+    let cleaned_inputs = clean_inputs(&args.inputs, &config.inputs)?;
 
     usecases::render_skeleton::execute(
-        adapters::file_finder(&config.template_directory),
+        adapters::render_skeleton::file_finder(&config.template_directory),
         |path| {
-            adapters::file_reader(
+            adapters::render_skeleton::file_reader(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
             )
         },
         |path, content| {
-            adapters::file_writer(path, &content, &args.output_path)
+            adapters::render_skeleton::file_writer(
+                path,
+                &content,
+                &args.output_path,
+            )
         },
     )
     .map_err(|error| {
@@ -72,4 +76,33 @@ pub fn skeleton_and_stdin_error() -> Result<(), String> {
 pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
     eprintln!("args = {:?}", args);
     Ok(())
+}
+
+fn clean_inputs(
+    user_inputs: &[(String, String)],
+    config_inputs: &[config::Input],
+) -> Result<Vec<(String, String)>, String> {
+    let inputs = validation::validate_inputs(user_inputs, config_inputs)
+        .map_err(|error| {
+            let errors = error.0.iter().fold(String::new(), |acc, e| {
+                let msg = match e {
+                    validation::ErrorType::MissingInput(name) => {
+                        format!("Missing input '{}'.", name)
+                    }
+                    validation::ErrorType::InvalidOption(key, value) => {
+                        format!(
+                            "Invalid option '{}' to input '{}'.",
+                            value, key
+                        )
+                    }
+                };
+                format!("{}{}\n", acc, msg)
+            });
+
+            eprint!("{errors}");
+
+            errors
+        })?;
+
+    Ok(inputs)
 }
