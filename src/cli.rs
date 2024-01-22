@@ -61,6 +61,10 @@ where
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    /// Use verbose output
+    #[arg(short, long, default_value_t = false)]
+    pub verbose: bool,
+
     /// Which skeleton to use
     #[arg(
         short('s'),
