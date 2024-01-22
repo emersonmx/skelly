@@ -82,3 +82,8 @@ pub fn file_writer(
     })?;
     Ok(())
 }
+
+pub fn text_writer(content: &str) -> Result<(), Error> {
+    print!("{content}");
+    Ok(())
+}

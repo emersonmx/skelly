@@ -58,8 +58,24 @@ pub fn skeleton_to_stdout(
     args: &cli::Args,
     config: &config::Config,
 ) -> Result<(), String> {
-    eprintln!("args = {:?}", args);
-    eprintln!("config = {:?}", config);
+    let cleaned_inputs = clean_inputs(&args.inputs, &config.inputs)?;
+
+    usecases::render_skeleton::execute(
+        adapters::file_finder(&config.template_directory),
+        |path| {
+            adapters::file_reader(
+                path,
+                &cleaned_inputs,
+                &config.template_directory,
+            )
+        },
+        |_, content| adapters::text_writer(&content),
+    )
+    .map_err(|error| {
+        eprintln!("{}", error.0);
+        error.to_string()
+    })?;
+
     Ok(())
 }
 
