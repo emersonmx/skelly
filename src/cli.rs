@@ -61,10 +61,6 @@ where
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Use verbose output
-    #[arg(short, long, default_value_t = false)]
-    pub verbose: bool,
-
     /// Which skeleton to use
     #[arg(
         short('s'),
@@ -89,6 +85,10 @@ pub struct Args {
     /// Inputs passed to the skeleton
     #[arg(value_parser = parse_key_val::<String, String>)]
     pub inputs: Vec<(String, String)>,
+
+    /// Use verbose output
+    #[arg(short, long, default_value_t = false)]
+    pub verbose: bool,
 }
 
 #[cfg(test)]
