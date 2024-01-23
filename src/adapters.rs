@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::renderer;
 
-fn make_message(message: &str, error: &str, verbose: bool) -> String {
+fn make_error_message(message: &str, error: &str, verbose: bool) -> String {
     if verbose {
         format!("{}\n    {}", message, error)
     } else {
@@ -29,14 +29,14 @@ pub fn file_reader(
 ) -> Result<(PathBuf, String), String> {
     let rendered_template =
         render_template(path, inputs, verbose).map_err(|e| {
-            make_message(
+            make_error_message(
                 &format!("Unable to render file '{}'.", path.display()),
                 &e,
                 verbose,
             )
         })?;
     let relative_path = path.strip_prefix(template_directory).map_err(|e| {
-        make_message(
+        make_error_message(
             &format!(
                 "Unable to strip template path '{}' from path '{}'.",
                 template_directory.display(),
@@ -48,7 +48,7 @@ pub fn file_reader(
     })?;
     let rendered_relative_path = render_path(relative_path, inputs, verbose)
         .map_err(|e| {
-            make_message(
+            make_error_message(
                 &format!("Unable to render path '{}'.", path.display()),
                 &e,
                 verbose,
@@ -64,10 +64,10 @@ fn render_template(
     verbose: bool,
 ) -> Result<String, String> {
     let content = fs::read_to_string(path).map_err(|e| {
-        make_message("Unable to read template.", &e.to_string(), verbose)
+        make_error_message("Unable to read template.", &e.to_string(), verbose)
     })?;
     let rendered_content = renderer::render(&content, inputs).map_err(|e| {
-        make_message("Unable to render template.", &e.0, verbose)
+        make_error_message("Unable to render template.", &e.0, verbose)
     })?;
     Ok(rendered_content)
 }
@@ -79,7 +79,7 @@ fn render_path(
 ) -> Result<PathBuf, String> {
     let raw_path = path.to_str().ok_or("Unable to convert path to string.")?;
     let rendered_path = renderer::render(raw_path, inputs)
-        .map_err(|e| make_message("Unable to render path.", &e.0, verbose))?;
+        .map_err(|e| make_error_message("Unable to render path.", &e.0, verbose))?;
     Ok(PathBuf::from(rendered_path))
 }
 
@@ -89,10 +89,10 @@ pub fn text_reader(
 ) -> Result<String, String> {
     let mut content = String::new();
     std::io::stdin().read_to_string(&mut content).map_err(|e| {
-        make_message("Unable to read from stdin.", &e.to_string(), verbose)
+        make_error_message("Unable to read from stdin.", &e.to_string(), verbose)
     })?;
     let rendered_content = renderer::render(&content, inputs).map_err(|e| {
-        make_message("Unable to render template.", &e.0, verbose)
+        make_error_message("Unable to render template.", &e.0, verbose)
     })?;
     Ok(rendered_content)
 }
@@ -109,14 +109,14 @@ pub fn file_writer(
         path.display()
     ))?;
     fs::create_dir_all(output_directory).map_err(|e| {
-        make_message(
+        make_error_message(
             &format!("Unable to create path '{}'.", output_directory.display()),
             &e.to_string(),
             verbose,
         )
     })?;
     fs::write(&output_path, content).map_err(|e| {
-        make_message(
+        make_error_message(
             &format!(
                 "Unable to write content to path '{}'.",
                 &output_path.display()
