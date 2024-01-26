@@ -6,19 +6,38 @@ use std::{
 
 const DEFAULT_TEMPLATE_DIRECTORY: &str = "skeleton";
 
-fn value_to_string(value: &toml::Value) -> String {
-    match value {
-        toml::Value::String(v) => v.to_owned(),
-        v => v.to_string(),
-    }
-}
-
 #[derive(thiserror::Error, PartialEq, Debug)]
 pub enum Error {
     #[error("Unable to read file")]
     UnableToReadFile,
     #[error("Unable to parse")]
     UnableToParse,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Config {
+    #[serde(skip, default = "default_template_directory")]
+    pub template_directory: PathBuf,
+
+    pub inputs: Vec<Input>,
+}
+
+impl Config {
+    pub fn from_file(path: &Path) -> Result<Self, Error> {
+        let skeleton_directory =
+            path.parent().unwrap_or(Path::new(".")).to_owned();
+        let template_directory =
+            skeleton_directory.join(default_template_directory()).to_owned();
+        let content =
+            fs::read_to_string(path).or(Err(Error::UnableToReadFile))?;
+        let result: Self =
+            toml::from_str(&content).or(Err(Error::UnableToParse))?;
+        Ok(Self { template_directory, ..result })
+    }
+}
+
+fn default_template_directory() -> PathBuf {
+    Path::new(DEFAULT_TEMPLATE_DIRECTORY).to_owned()
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -30,6 +49,13 @@ pub struct Input {
 
     #[serde(default, deserialize_with = "deserialize_options")]
     pub options: Option<Vec<String>>,
+}
+
+fn value_to_string(value: &toml::Value) -> String {
+    match value {
+        toml::Value::String(v) => v.to_owned(),
+        v => v.to_string(),
+    }
 }
 
 fn deserialize_default<'de, D>(
@@ -57,32 +83,6 @@ where
         .collect();
 
     Ok(Some(values))
-}
-
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct Config {
-    #[serde(skip, default = "default_template_directory")]
-    pub template_directory: PathBuf,
-
-    pub inputs: Vec<Input>,
-}
-
-fn default_template_directory() -> PathBuf {
-    Path::new(DEFAULT_TEMPLATE_DIRECTORY).to_owned()
-}
-
-impl Config {
-    pub fn from_file(path: &Path) -> Result<Self, Error> {
-        let skeleton_directory =
-            path.parent().unwrap_or(Path::new(".")).to_owned();
-        let template_directory =
-            skeleton_directory.join(default_template_directory()).to_owned();
-        let content =
-            fs::read_to_string(path).or(Err(Error::UnableToReadFile))?;
-        let result: Self =
-            toml::from_str(&content).or(Err(Error::UnableToParse))?;
-        Ok(Self { template_directory, ..result })
-    }
 }
 
 #[cfg(test)]
