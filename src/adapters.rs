@@ -78,8 +78,9 @@ fn render_path(
     verbose: bool,
 ) -> Result<PathBuf, String> {
     let raw_path = path.to_str().ok_or("Unable to convert path to string.")?;
-    let rendered_path = renderer::render(raw_path, inputs)
-        .map_err(|e| make_error_message("Unable to render path.", &e.0, verbose))?;
+    let rendered_path = renderer::render(raw_path, inputs).map_err(|e| {
+        make_error_message("Unable to render path.", &e.0, verbose)
+    })?;
     Ok(PathBuf::from(rendered_path))
 }
 
@@ -89,7 +90,11 @@ pub fn text_reader(
 ) -> Result<String, String> {
     let mut content = String::new();
     std::io::stdin().read_to_string(&mut content).map_err(|e| {
-        make_error_message("Unable to read from stdin.", &e.to_string(), verbose)
+        make_error_message(
+            "Unable to read from stdin.",
+            &e.to_string(),
+            verbose,
+        )
     })?;
     let rendered_content = renderer::render(&content, inputs).map_err(|e| {
         make_error_message("Unable to render template.", &e.0, verbose)
