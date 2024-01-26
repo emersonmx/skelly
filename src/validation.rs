@@ -1,8 +1,6 @@
 use crate::config::Input;
 use std::collections::HashMap;
 
-pub type UserInput = (String, String);
-
 #[derive(thiserror::Error, PartialEq, Debug)]
 #[error("validation errors")]
 pub struct Error(pub Vec<ErrorType>);
@@ -14,9 +12,9 @@ pub enum ErrorType {
 }
 
 pub fn validate_inputs(
-    user_inputs: &[UserInput],
+    user_inputs: &[(String, String)],
     config_inputs: &[Input],
-) -> Result<Vec<UserInput>, Error> {
+) -> Result<Vec<(String, String)>, Error> {
     let input_map = create_input_map(config_inputs);
     let mut inputs = create_inputs_with_defaults(config_inputs);
     let mut errors = Vec::new();
@@ -46,7 +44,7 @@ fn create_inputs_with_defaults(inputs: &[Input]) -> HashMap<String, String> {
 }
 
 fn fill_with_valid_inputs(
-    user_inputs: &[UserInput],
+    user_inputs: &[(String, String)],
     input_map: &HashMap<String, Input>,
     inputs: &mut HashMap<String, String>,
     errors: &mut Vec<ErrorType>,
