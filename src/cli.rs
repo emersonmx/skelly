@@ -6,6 +6,39 @@ use std::{fs::create_dir_all, path::PathBuf};
 
 const CONFIG_NAME: &str = "skelly.toml";
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    /// Which skeleton to use
+    #[arg(
+        short('s'),
+        long("skeleton-path"),
+        value_name = "DIRECTORY",
+        value_hint = clap::ValueHint::DirPath,
+        value_parser = parse_skeleton_config
+    )]
+    pub skeleton_config: Option<Config>,
+
+    /// Where to output the generated skeleton into
+    #[arg(
+        short,
+        long,
+        value_name = "DIRECTORY",
+        default_value = ".",
+        value_hint = clap::ValueHint::DirPath,
+        value_parser = parse_output_path,
+    )]
+    pub output_path: PathBuf,
+
+    /// Inputs passed to the skeleton
+    #[arg(value_parser = parse_key_val::<String, String>)]
+    pub inputs: Vec<(String, String)>,
+
+    /// Use verbose output
+    #[arg(short, long, default_value_t = false)]
+    pub verbose: bool,
+}
+
 fn parse_skeleton_config(value: &str) -> Result<Config, String> {
     let path = Path::new(value);
     if !path.is_dir() {
@@ -56,39 +89,6 @@ where
         .find('=')
         .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{s}`"))?;
     Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
-}
-
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-pub struct Args {
-    /// Which skeleton to use
-    #[arg(
-        short('s'),
-        long("skeleton-path"),
-        value_name = "DIRECTORY",
-        value_hint = clap::ValueHint::DirPath,
-        value_parser = parse_skeleton_config
-    )]
-    pub skeleton_config: Option<Config>,
-
-    /// Where to output the generated skeleton into
-    #[arg(
-        short,
-        long,
-        value_name = "DIRECTORY",
-        default_value = ".",
-        value_hint = clap::ValueHint::DirPath,
-        value_parser = parse_output_path,
-    )]
-    pub output_path: PathBuf,
-
-    /// Inputs passed to the skeleton
-    #[arg(value_parser = parse_key_val::<String, String>)]
-    pub inputs: Vec<(String, String)>,
-
-    /// Use verbose output
-    #[arg(short, long, default_value_t = false)]
-    pub verbose: bool,
 }
 
 #[cfg(test)]
