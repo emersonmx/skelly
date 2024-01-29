@@ -19,6 +19,16 @@ pub struct Args {
     )]
     pub skeleton_config: Option<Config>,
 
+    /// Which file to use
+    #[arg(
+        short,
+        long("file-path"),
+        value_name = "FILE",
+        value_hint = clap::ValueHint::FilePath,
+        value_parser = parse_file_path
+    )]
+    pub file_path: Option<PathBuf>,
+
     /// Where to output the generated skeleton into
     #[arg(
         short,
@@ -59,6 +69,23 @@ fn parse_skeleton_config(value: &str) -> Result<Config, String> {
 
     Config::from_file(&config_path)
         .or(Err("unable to parse config.".to_string()))
+}
+
+fn parse_file_path(value: &str) -> Result<PathBuf, String> {
+    let path = Path::new(value);
+    if !path.is_file() {
+        return Err(format!("'{value}' is not a file."));
+    }
+
+    let abspath = path
+        .canonicalize()
+        .or(Err(format!("unable to resolve path '{value}'.")))?;
+
+    if !abspath.exists() {
+        return Err(format!("file '{}' does not exist.", abspath.display()));
+    }
+
+    Ok(abspath)
 }
 
 fn parse_output_path(value: &str) -> Result<PathBuf, String> {

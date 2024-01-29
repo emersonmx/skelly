@@ -21,7 +21,7 @@ pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> {
         .filter(|p| !p.is_dir())
 }
 
-pub fn file_reader(
+pub fn skeleton_file_reader(
     path: &Path,
     inputs: &[(String, String)],
     template_directory: &Path,
@@ -102,6 +102,27 @@ pub fn text_reader(
     Ok(rendered_content)
 }
 
+pub fn text_writer(content: String) {
+    print!("{content}");
+}
+
+pub fn file_reader(
+    path: &Path,
+    inputs: &[(String, String)],
+    verbose: bool,
+) -> Result<String, String> {
+    let rendered_template =
+        render_template(path, inputs, verbose).map_err(|e| {
+            make_error_message(
+                &format!("Unable to render file '{}'.", path.display()),
+                &e,
+                verbose,
+            )
+        })?;
+
+    Ok(rendered_template)
+}
+
 pub fn file_writer(
     path: &Path,
     content: &str,
@@ -131,8 +152,4 @@ pub fn file_writer(
         )
     })?;
     Ok(())
-}
-
-pub fn text_writer(content: String) {
-    print!("{content}");
 }

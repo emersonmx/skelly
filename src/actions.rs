@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::{adapters, cli, config, usecases, validation};
 
 pub fn handle(
@@ -16,8 +18,19 @@ pub fn handle(
             true,
             false,
         ) => skeleton_to_stdout(&args, skeleton_config)?,
-        (cli::Args { skeleton_config: Some(_), .. }, false, _) => {
-            skeleton_and_stdin_error()?
+        (cli::Args { file_path: Some(file_path), .. }, true, _) => {
+            file_to_stdout(&args, file_path)?
+        }
+        (
+            cli::Args { skeleton_config: Some(_), file_path: Some(_), .. },
+            _,
+            _,
+        ) => error_action("Unable to decide between skeleton and file.")?,
+        (cli::Args { skeleton_config: Some(_), .. }, false, _) => error_action(
+            "Unable to decide between skeleton and standard input.",
+        )?,
+        (cli::Args { file_path: Some(_), .. }, false, _) => {
+            error_action("Unable to decide between file and standard input.")?
         }
         (cli::Args { skeleton_config: None, .. }, _, _) => {
             stdin_to_stdout(&args)?
@@ -36,7 +49,7 @@ pub fn render_skeleton(
     usecases::render_skeleton::execute(
         adapters::file_finder(&config.template_directory),
         |path| {
-            adapters::file_reader(
+            adapters::skeleton_file_reader(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
@@ -71,7 +84,7 @@ pub fn skeleton_to_stdout(
     usecases::render_skeleton::execute(
         adapters::file_finder(&config.template_directory),
         |path| {
-            adapters::file_reader(
+            adapters::skeleton_file_reader(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
@@ -92,10 +105,27 @@ pub fn skeleton_to_stdout(
     Ok(())
 }
 
-pub fn skeleton_and_stdin_error() -> Result<(), String> {
-    let msg = "Unable to decide between skeleton and standard input.";
-    eprintln!("{msg}");
-    Err(msg)?
+pub fn file_to_stdout(args: &cli::Args, path: &Path) -> Result<(), String> {
+    usecases::render_text::execute(
+        || {
+            adapters::file_reader(path, &args.inputs, args.verbose)
+                .map_err(usecases::render_text::Error)
+        },
+        |content| {
+            adapters::text_writer(content);
+            Ok(())
+        },
+    )
+    .map_err(|error| {
+        eprintln!("{}", error.0);
+        error.to_string()
+    })?;
+    Ok(())
+}
+
+pub fn error_action(message: &str) -> Result<(), String> {
+    eprintln!("{message}");
+    Err(message)?
 }
 
 pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
