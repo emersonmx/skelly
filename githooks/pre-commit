@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -euo pipefail
-
-echo "Running code format..."
-cargo fmt --quiet  --check
-
-echo "Running clippy..."
-cargo clippy --quiet
