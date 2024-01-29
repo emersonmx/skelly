@@ -2,5 +2,8 @@
 
 set -euo pipefail
 
-cargo --quiet fmt --check
-cargo --quiet clippy
+echo "Running code format..."
+cargo fmt --quiet  --check
+
+echo "Running clippy..."
+cargo clippy --quiet
