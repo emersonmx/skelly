@@ -10,16 +10,17 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  checks:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
+
     - name: Check format
-      run: cargo build --verbose
+      run: cargo fmt --check
+
     - name: Check code
-      run: cargo build --verbose
+      run: cargo clippy
+
     - name: Run tests
       run: cargo test --verbose
