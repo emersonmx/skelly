@@ -49,3 +49,10 @@ skelly -s /tmp/my_template full_name='John Doe'
 ```
 
 See [my ossuary](https://github.com/emersonmx/ossuary) for more examples.
+
+## Development
+
+```sh
+# Setup githooks
+./githooks/setup.sh
+```
