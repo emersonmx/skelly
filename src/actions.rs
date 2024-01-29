@@ -12,14 +12,19 @@ pub fn handle(
             cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
             true,
-        ) => render_skeleton(&args, skeleton_config)?,
+        ) => render_skeleton(
+            skeleton_config,
+            &args.output_path,
+            &args.inputs,
+            args.verbose,
+        )?,
         (
             cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
             false,
-        ) => skeleton_to_stdout(&args, skeleton_config)?,
+        ) => skeleton_to_stdout(skeleton_config, &args.inputs, args.verbose)?,
         (cli::Args { file_path: Some(file_path), .. }, true, _) => {
-            file_to_stdout(&args, file_path)?
+            file_to_stdout(file_path, &args.inputs, args.verbose)?
         }
         (
             cli::Args { skeleton_config: Some(_), file_path: Some(_), .. },
@@ -33,7 +38,7 @@ pub fn handle(
             error_action("Unable to decide between file and standard input.")?
         }
         (cli::Args { skeleton_config: None, .. }, _, _) => {
-            stdin_to_stdout(&args)?
+            stdin_to_stdout(&args.inputs, args.verbose)?
         }
     }
 
@@ -41,10 +46,12 @@ pub fn handle(
 }
 
 pub fn render_skeleton(
-    args: &cli::Args,
     config: &config::Config,
+    output_path: &Path,
+    inputs: &[(String, String)],
+    verbose: bool,
 ) -> Result<(), String> {
-    let cleaned_inputs = clean_inputs(&args.inputs, &config.inputs)?;
+    let cleaned_inputs = clean_inputs(inputs, &config.inputs)?;
 
     usecases::render_skeleton::execute(
         adapters::file_finder(&config.template_directory),
@@ -53,18 +60,13 @@ pub fn render_skeleton(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
-                args.verbose,
+                verbose,
             )
             .map_err(usecases::render_skeleton::Error)
         },
         |path, content| {
-            adapters::file_writer(
-                path,
-                &content,
-                &args.output_path,
-                args.verbose,
-            )
-            .map_err(usecases::render_skeleton::Error)
+            adapters::file_writer(path, &content, output_path, verbose)
+                .map_err(usecases::render_skeleton::Error)
         },
     )
     .map_err(|error| {
@@ -76,10 +78,11 @@ pub fn render_skeleton(
 }
 
 pub fn skeleton_to_stdout(
-    args: &cli::Args,
     config: &config::Config,
+    inputs: &[(String, String)],
+    verbose: bool,
 ) -> Result<(), String> {
-    let cleaned_inputs = clean_inputs(&args.inputs, &config.inputs)?;
+    let cleaned_inputs = clean_inputs(inputs, &config.inputs)?;
 
     usecases::render_skeleton::execute(
         adapters::file_finder(&config.template_directory),
@@ -88,7 +91,7 @@ pub fn skeleton_to_stdout(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
-                args.verbose,
+                verbose,
             )
             .map_err(usecases::render_skeleton::Error)
         },
@@ -105,10 +108,14 @@ pub fn skeleton_to_stdout(
     Ok(())
 }
 
-pub fn file_to_stdout(args: &cli::Args, path: &Path) -> Result<(), String> {
+pub fn file_to_stdout(
+    path: &Path,
+    inputs: &[(String, String)],
+    verbose: bool,
+) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            adapters::file_reader(path, &args.inputs, args.verbose)
+            adapters::file_reader(path, inputs, verbose)
                 .map_err(usecases::render_text::Error)
         },
         |content| {
@@ -128,10 +135,13 @@ pub fn error_action(message: &str) -> Result<(), String> {
     Err(message)?
 }
 
-pub fn stdin_to_stdout(args: &cli::Args) -> Result<(), String> {
+pub fn stdin_to_stdout(
+    inputs: &[(String, String)],
+    verbose: bool,
+) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            let text = adapters::text_reader(&args.inputs, args.verbose)
+            let text = adapters::text_reader(inputs, verbose)
                 .map_err(usecases::render_text::Error)?;
             Ok(text)
         },
