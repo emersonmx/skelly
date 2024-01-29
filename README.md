@@ -7,13 +7,16 @@ A simple scaffold tool written in Rust.
 ```
 Usage: skelly [OPTIONS] <SKELETON_PATH> [INPUTS]...
 
-# Output a skeleton to files
+# Render a skeleton to files
 skelly -s ~/path/to/skeleton input1=one input2=two inputN=N
 
-# Output a skeleton to stdout
+# Render a skeleton to stdout
 skelly -s ~/path/to/skeleton input1=one input2=two inputN=N | cat
 
-# Output a template from stdin to stdout
+# Render a file to stdout
+skelly -f ~/path/to/file input1=one input2=two inputN=N
+
+# Render a template from stdin to stdout
 echo "{{ name }} <{{ email }}>" | skelly name=john email=john@example.com 
 ```
 
