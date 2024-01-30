@@ -8,6 +8,12 @@ pub fn handle(
     use_output_terminal: bool,
 ) -> Result<(), String> {
     match (&args, use_input_terminal, use_output_terminal) {
+        (cli::Args { skeleton_config: Some(_), .. }, false, _) => error_action(
+            "Unable to decide between skeleton and standard input.",
+        )?,
+        (cli::Args { file_path: Some(_), .. }, false, _) => {
+            error_action("Unable to decide between file and standard input.")?
+        }
         (
             cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
@@ -25,16 +31,6 @@ pub fn handle(
         ) => skeleton_to_stdout(skeleton_config, &args.inputs, args.verbose)?,
         (cli::Args { file_path: Some(file_path), .. }, true, _) => {
             file_to_stdout(file_path, &args.inputs, args.verbose)?
-        }
-        (
-            cli::Args { skeleton_config: Some(_), file_path: Some(_), .. },
-            ..,
-        ) => error_action("Unable to decide between skeleton and file.")?,
-        (cli::Args { skeleton_config: Some(_), .. }, false, _) => error_action(
-            "Unable to decide between skeleton and standard input.",
-        )?,
-        (cli::Args { file_path: Some(_), .. }, false, _) => {
-            error_action("Unable to decide between file and standard input.")?
         }
         (cli::Args { skeleton_config: None, .. }, ..) => {
             stdin_to_stdout(&args.inputs, args.verbose)?

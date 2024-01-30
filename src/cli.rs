@@ -15,7 +15,8 @@ pub struct Args {
         long("skeleton-path"),
         value_name = "DIRECTORY",
         value_hint = clap::ValueHint::DirPath,
-        value_parser = parse_skeleton_config
+        value_parser = parse_skeleton_config,
+        conflicts_with = "file_path",
     )]
     pub skeleton_config: Option<Config>,
 
@@ -25,7 +26,8 @@ pub struct Args {
         long("file-path"),
         value_name = "FILE",
         value_hint = clap::ValueHint::FilePath,
-        value_parser = parse_file_path
+        value_parser = parse_file_path,
+        conflicts_with = "output_path",
     )]
     pub file_path: Option<PathBuf>,
 
