@@ -1,6 +1,6 @@
 [package]
 name = "skelly"
-version = "0.1.0"
+version = "1.0.0"
 description = "A simple scaffold tool written in Rust."
 authors = ["Emerson Max de Medeiros Silva <emersonmx@gmail.com>"]
 edition = "2021"
