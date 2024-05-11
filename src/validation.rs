@@ -69,7 +69,7 @@ fn fetch_options(input_map: &HashMap<String, Input>, key: &str) -> Vec<String> {
     input_map.get(key).and_then(|i| i.options.to_owned()).unwrap_or_default()
 }
 
-fn has_option(option: &String, options: &Vec<String>) -> bool {
+fn has_option(option: &String, options: &[String]) -> bool {
     options.is_empty() || options.contains(option)
 }
 
