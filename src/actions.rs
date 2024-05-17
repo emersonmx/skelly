@@ -163,10 +163,10 @@ fn clean_inputs(
                     validation::ErrorType::MissingInput(name) => {
                         format!("Missing input '{}'.", name)
                     }
-                    validation::ErrorType::InvalidOption(key, value) => {
+                    validation::ErrorType::InvalidOption(key, value, options) => {
                         format!(
-                            "Invalid option '{}' to input '{}'.",
-                            value, key
+                            "Invalid option '{}' to input '{}'. Available options: {}.",
+                            value, key, options.join(", ")
                         )
                     }
                 };

@@ -8,7 +8,7 @@ pub struct Error(pub Vec<ErrorType>);
 #[derive(PartialEq, Debug)]
 pub enum ErrorType {
     MissingInput(String),
-    InvalidOption(String, String),
+    InvalidOption(String, String, Vec<String>),
 }
 
 pub fn validate_inputs(
@@ -60,6 +60,7 @@ fn fill_with_valid_inputs(
             errors.push(ErrorType::InvalidOption(
                 ui.0.to_owned(),
                 ui.1.to_owned(),
+                options,
             ));
         }
     }
@@ -180,7 +181,8 @@ mod tests {
             Err(Error(vec![
                 ErrorType::InvalidOption(
                     "test".to_owned(),
-                    "invalid".to_owned()
+                    "invalid".to_owned(),
+                    vec!["ok".to_owned(), "fail".to_owned()],
                 ),
                 ErrorType::MissingInput("test".to_owned())
             ])),
