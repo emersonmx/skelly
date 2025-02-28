@@ -12,7 +12,7 @@ fn make_error_message(message: &str, error: &str, verbose: bool) -> String {
     }
 }
 
-pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> {
+pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> + use<> {
     walkdir::WalkDir::new(path)
         .min_depth(1)
         .into_iter()
