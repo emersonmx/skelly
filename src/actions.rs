@@ -1,6 +1,5 @@
-use std::path::Path;
-
 use crate::{adapters, cli, config, usecases, validation};
+use std::path::Path;
 
 pub fn handle(
     args: cli::Args,

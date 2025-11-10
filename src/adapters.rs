@@ -1,8 +1,7 @@
+use crate::renderer;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-
-use crate::renderer;
 
 fn make_error_message(message: &str, error: &str, verbose: bool) -> String {
     if verbose {

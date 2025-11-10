@@ -1,3 +1,6 @@
+use clap::Parser;
+use std::io::IsTerminal;
+
 mod actions;
 mod adapters;
 mod cli;
@@ -5,10 +8,6 @@ mod config;
 mod renderer;
 mod usecases;
 mod validation;
-
-use std::io::IsTerminal;
-
-use clap::Parser;
 
 fn main() {
     let response = actions::handle(
