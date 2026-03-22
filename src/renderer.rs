@@ -21,11 +21,22 @@ pub fn render(
     match Tera::one_off(template, &context, false) {
         Ok(r) => Ok(r),
         Err(e) => {
-            let error = e
-                .source()
-                .map(|s| s.to_string())
-                .unwrap_or("unknown error".to_owned());
-            Err(Error(error))
+            let message =
+                e.source().map(|s| s.to_string()).unwrap_or(e.to_string());
+            let error_message = if message.starts_with("Variable `")
+                && message.contains("` not found in context")
+            {
+                let variable_name = message
+                    .split("Variable `")
+                    .nth(1)
+                    .and_then(|s| s.split('`').next())
+                    .unwrap_or("unknown");
+                format!("Variable `{variable_name}` not found",)
+            } else {
+                message
+            };
+
+            Err(Error(error_message))
         }
     }
 }
@@ -53,7 +64,7 @@ mod tests {
 
     #[test]
     fn error_when_missing_input() {
-        let expected = "Variable `name` not found in context while rendering '__tera_one_off'".to_owned();
+        let expected = "Variable `name` not found".to_string();
         let result = render("Hello {{ name }}", &[]);
 
         assert_eq!(result, Err(Error(expected)));

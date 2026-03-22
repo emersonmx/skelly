@@ -55,8 +55,8 @@ fn render_template(
     let content = fs::read_to_string(path).map_err(|e| {
         make_error_message("Unable to read template.", &e.to_string())
     })?;
-    let rendered_content = renderer::render(&content, inputs)
-        .map_err(|e| make_error_message("Unable to render template.", &e.0))?;
+    let rendered_content =
+        renderer::render(&content, inputs).map_err(|e| e.0.to_string())?;
     Ok(rendered_content)
 }
 
