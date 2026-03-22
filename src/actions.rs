@@ -17,22 +17,17 @@ pub fn handle(
             cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
             true,
-        ) => render_skeleton(
-            skeleton_config,
-            &args.output_path,
-            &args.inputs,
-            args.verbose,
-        )?,
+        ) => render_skeleton(skeleton_config, &args.output_path, &args.inputs)?,
         (
             cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
             false,
-        ) => skeleton_to_stdout(skeleton_config, &args.inputs, args.verbose)?,
+        ) => skeleton_to_stdout(skeleton_config, &args.inputs)?,
         (cli::Args { file_path: Some(file_path), .. }, true, _) => {
-            file_to_stdout(file_path, &args.inputs, args.verbose)?
+            file_to_stdout(file_path, &args.inputs)?
         }
         (cli::Args { skeleton_config: None, .. }, ..) => {
-            stdin_to_stdout(&args.inputs, args.verbose)?
+            stdin_to_stdout(&args.inputs)?
         }
     }
 
@@ -43,7 +38,6 @@ pub fn render_skeleton(
     config: &config::Config,
     output_path: &Path,
     inputs: &[(String, String)],
-    verbose: bool,
 ) -> Result<(), String> {
     let cleaned_inputs = clean_inputs(inputs, &config.inputs)?;
 
@@ -54,12 +48,11 @@ pub fn render_skeleton(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
-                verbose,
             )
             .map_err(usecases::render_skeleton::Error)
         },
         |path, content| {
-            adapters::file_writer(path, &content, output_path, verbose)
+            adapters::file_writer(path, &content, output_path)
                 .map_err(usecases::render_skeleton::Error)
         },
     )
@@ -74,7 +67,6 @@ pub fn render_skeleton(
 pub fn skeleton_to_stdout(
     config: &config::Config,
     inputs: &[(String, String)],
-    verbose: bool,
 ) -> Result<(), String> {
     let cleaned_inputs = clean_inputs(inputs, &config.inputs)?;
 
@@ -85,7 +77,6 @@ pub fn skeleton_to_stdout(
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
-                verbose,
             )
             .map_err(usecases::render_skeleton::Error)
         },
@@ -105,11 +96,10 @@ pub fn skeleton_to_stdout(
 pub fn file_to_stdout(
     path: &Path,
     inputs: &[(String, String)],
-    verbose: bool,
 ) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            adapters::file_reader(path, inputs, verbose)
+            adapters::file_reader(path, inputs)
                 .map_err(usecases::render_text::Error)
         },
         |content| {
@@ -129,13 +119,10 @@ pub fn error_action(message: &str) -> Result<(), String> {
     Err(message)?
 }
 
-pub fn stdin_to_stdout(
-    inputs: &[(String, String)],
-    verbose: bool,
-) -> Result<(), String> {
+pub fn stdin_to_stdout(inputs: &[(String, String)]) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            let text = adapters::text_reader(inputs, verbose)
+            let text = adapters::text_reader(inputs)
                 .map_err(usecases::render_text::Error)?;
             Ok(text)
         },

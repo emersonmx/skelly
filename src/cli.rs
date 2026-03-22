@@ -44,10 +44,6 @@ pub struct Args {
     /// Inputs passed to the skeleton
     #[arg(value_parser = parse_key_val::<String, String>)]
     pub inputs: Vec<(String, String)>,
-
-    /// Use verbose output
-    #[arg(short, long, default_value_t = false)]
-    pub verbose: bool,
 }
 
 fn parse_skeleton_config(value: &str) -> Result<Config, String> {

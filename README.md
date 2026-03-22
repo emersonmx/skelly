@@ -83,10 +83,6 @@ used to fill in placeholders in your templates.
 skelly ... my_key="my value" another_key=123
 ```
 
-### Verbose Output
-
-Use the `-v` or `--verbose` flag for more detailed error messages.
-
 ```bash
 skelly -v --file-path template.txt
 ```
