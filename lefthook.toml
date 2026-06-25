@@ -1,0 +1,5 @@
+[pre-commit.commands.format]
+run = "cargo fmt --check --verbose"
+
+[pre-commit.commands.lint]
+run = "just ci"
