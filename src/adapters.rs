@@ -17,16 +17,18 @@ pub fn file_finder(path: &Path) -> impl IntoIterator<Item = PathBuf> + use<> {
 }
 
 pub fn skeleton_file_reader(
+    template_dir: Option<&Path>,
     path: &Path,
     inputs: &[(String, String)],
     template_directory: &Path,
 ) -> Result<(PathBuf, String), String> {
-    let rendered_template = render_template(path, inputs).map_err(|e| {
-        make_error_message(
-            &format!("Unable to render file '{}'.", path.display()),
-            &e,
-        )
-    })?;
+    let rendered_template = render_template(template_dir, path, inputs)
+        .map_err(|e| {
+            make_error_message(
+                &format!("Unable to render file '{}'.", path.display()),
+                &e,
+            )
+        })?;
     let relative_path = path.strip_prefix(template_directory).map_err(|e| {
         make_error_message(
             &format!(
@@ -49,14 +51,16 @@ pub fn skeleton_file_reader(
 }
 
 fn render_template(
+    template_dir: Option<&Path>,
     path: &Path,
     inputs: &[(String, String)],
 ) -> Result<String, String> {
+    let template_dir_str = template_dir.map(|p| p.to_str().unwrap_or_default());
     let content = fs::read_to_string(path).map_err(|e| {
         make_error_message("Unable to read template.", &e.to_string())
     })?;
-    let rendered_content =
-        renderer::render(&content, inputs).map_err(|e| e.0.to_string())?;
+    let rendered_content = renderer::render(template_dir_str, &content, inputs)
+        .map_err(|e| e.0.to_string())?;
     Ok(rendered_content)
 }
 
@@ -65,17 +69,21 @@ fn render_path(
     inputs: &[(String, String)],
 ) -> Result<PathBuf, String> {
     let raw_path = path.to_str().ok_or("Unable to convert path to string.")?;
-    let rendered_path = renderer::render(raw_path, inputs)
+    let rendered_path = renderer::render(None, raw_path, inputs)
         .map_err(|e| make_error_message("Unable to render path.", &e.0))?;
     Ok(PathBuf::from(rendered_path))
 }
 
-pub fn text_reader(inputs: &[(String, String)]) -> Result<String, String> {
+pub fn text_reader(
+    template_dir: Option<&Path>,
+    inputs: &[(String, String)],
+) -> Result<String, String> {
+    let template_dir_str = template_dir.map(|p| p.to_str().unwrap_or_default());
     let mut content = String::new();
     std::io::stdin().read_to_string(&mut content).map_err(|e| {
         make_error_message("Unable to read from stdin.", &e.to_string())
     })?;
-    let rendered_content = renderer::render(&content, inputs)
+    let rendered_content = renderer::render(template_dir_str, &content, inputs)
         .map_err(|e| make_error_message("Unable to render template.", &e.0))?;
     Ok(rendered_content)
 }
@@ -85,15 +93,17 @@ pub fn text_writer(content: String) {
 }
 
 pub fn file_reader(
+    template_dir: Option<&Path>,
     path: &Path,
     inputs: &[(String, String)],
 ) -> Result<String, String> {
-    let rendered_template = render_template(path, inputs).map_err(|e| {
-        make_error_message(
-            &format!("Unable to render file '{}'.", path.display()),
-            &e,
-        )
-    })?;
+    let rendered_template = render_template(template_dir, path, inputs)
+        .map_err(|e| {
+            make_error_message(
+                &format!("Unable to render file '{}'.", path.display()),
+                &e,
+            )
+        })?;
 
     Ok(rendered_template)
 }

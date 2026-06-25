@@ -16,6 +16,7 @@ pub struct Args {
         value_name = "DIRECTORY",
         value_hint = clap::ValueHint::DirPath,
         value_parser = parse_skeleton_config,
+        conflicts_with_all = ["library_dir"],
     )]
     pub skeleton_config: Option<Config>,
 
@@ -40,6 +41,16 @@ pub struct Args {
         value_parser = parse_output_path,
     )]
     pub output_path: PathBuf,
+
+    /// Directory containing additional templates available to the main template
+    #[arg(
+        short('l'),
+        long("library-dir"),
+        value_name = "DIRECTORY",
+        value_hint = clap::ValueHint::DirPath,
+        value_parser = parse_library_dir,
+    )]
+    pub library_dir: Option<PathBuf>,
 
     /// Inputs passed to the skeleton
     #[arg(value_parser = parse_key_val::<String, String>)]
@@ -95,6 +106,15 @@ fn parse_output_path(value: &str) -> Result<PathBuf, String> {
     } else {
         create_dir_all(&path)
             .or(Err(format!("unable to create directory '{value}'.")))?;
+    }
+
+    path.canonicalize().or(Err(format!("unable to resolve path '{value}'.")))
+}
+
+fn parse_library_dir(value: &str) -> Result<PathBuf, String> {
+    let path = Path::new(value);
+    if !path.is_dir() {
+        return Err(format!("'{value}' is not a directory."));
     }
 
     path.canonicalize().or(Err(format!("unable to resolve path '{value}'.")))

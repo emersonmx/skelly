@@ -14,20 +14,39 @@ pub fn handle(
             error_action("Unable to decide between file and standard input.")?
         }
         (
-            cli::Args { skeleton_config: Some(skeleton_config), .. },
+            cli::Args {
+                skeleton_config: Some(skeleton_config),
+                library_dir,
+                ..
+            },
             true,
             true,
-        ) => render_skeleton(skeleton_config, &args.output_path, &args.inputs)?,
+        ) => render_skeleton(
+            library_dir.as_deref(),
+            skeleton_config,
+            &args.output_path,
+            &args.inputs,
+        )?,
         (
-            cli::Args { skeleton_config: Some(skeleton_config), .. },
+            cli::Args {
+                skeleton_config: Some(skeleton_config),
+                library_dir,
+                ..
+            },
             true,
             false,
-        ) => skeleton_to_stdout(skeleton_config, &args.inputs)?,
-        (cli::Args { file_path: Some(file_path), .. }, true, _) => {
-            file_to_stdout(file_path, &args.inputs)?
-        }
-        (cli::Args { skeleton_config: None, .. }, ..) => {
-            stdin_to_stdout(&args.inputs)?
+        ) => skeleton_to_stdout(
+            library_dir.as_deref(),
+            skeleton_config,
+            &args.inputs,
+        )?,
+        (
+            cli::Args { file_path: Some(file_path), library_dir, .. },
+            true,
+            _,
+        ) => file_to_stdout(library_dir.as_deref(), file_path, &args.inputs)?,
+        (cli::Args { skeleton_config: None, library_dir, .. }, ..) => {
+            stdin_to_stdout(library_dir.as_deref(), &args.inputs)?
         }
     }
 
@@ -35,6 +54,7 @@ pub fn handle(
 }
 
 pub fn render_skeleton(
+    library_dir: Option<&Path>,
     config: &config::Config,
     output_path: &Path,
     inputs: &[(String, String)],
@@ -45,6 +65,7 @@ pub fn render_skeleton(
         adapters::file_finder(&config.template_directory),
         |path| {
             adapters::skeleton_file_reader(
+                library_dir,
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
@@ -65,6 +86,7 @@ pub fn render_skeleton(
 }
 
 pub fn skeleton_to_stdout(
+    library_dir: Option<&Path>,
     config: &config::Config,
     inputs: &[(String, String)],
 ) -> Result<(), String> {
@@ -74,6 +96,7 @@ pub fn skeleton_to_stdout(
         adapters::file_finder(&config.template_directory),
         |path| {
             adapters::skeleton_file_reader(
+                library_dir,
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
@@ -94,12 +117,13 @@ pub fn skeleton_to_stdout(
 }
 
 pub fn file_to_stdout(
+    library_dir: Option<&Path>,
     path: &Path,
     inputs: &[(String, String)],
 ) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            adapters::file_reader(path, inputs)
+            adapters::file_reader(library_dir, path, inputs)
                 .map_err(usecases::render_text::Error)
         },
         |content| {
@@ -119,10 +143,13 @@ pub fn error_action(message: &str) -> Result<(), String> {
     Err(message)?
 }
 
-pub fn stdin_to_stdout(inputs: &[(String, String)]) -> Result<(), String> {
+pub fn stdin_to_stdout(
+    library_dir: Option<&Path>,
+    inputs: &[(String, String)],
+) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            let text = adapters::text_reader(inputs)
+            let text = adapters::text_reader(library_dir, inputs)
                 .map_err(usecases::render_text::Error)?;
             Ok(text)
         },
