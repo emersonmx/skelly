@@ -1,0 +1,5 @@
+---
+source: src/renderer.rs
+expression: "format!(\"{:?}\", result.unwrap_err().0)"
+---
+"\"error: Variable `name` is not defined.\\n --> __input_template:1:10\\n  |\\n1 | Hello {{ name }}\\n  |          ^^^^\""

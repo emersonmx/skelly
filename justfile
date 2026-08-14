@@ -1,3 +1,5 @@
+set quiet
+
 setup:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -11,6 +13,11 @@ setup:
     if ! command -v bacon &> /dev/null; then
         echo "bacon not found, installing..."
         cargo install --locked bacon
+    fi
+
+    if ! command -v cargo-insta &> /dev/null; then
+        echo "tarpaulin not found, installing..."
+        cargo install --locked cargo-insta
     fi
 
 @build *ARGS:
@@ -38,6 +45,9 @@ setup:
 
 @test *ARGS:
     cargo test {{ ARGS }}
+
+review-snap *ARGS:
+    cargo insta review {{ ARGS }}
 
 @clean *ARGS:
     cargo clean {{ ARGS }}
