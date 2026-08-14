@@ -128,7 +128,7 @@ pub fn file_writer(
         make_error_message(
             &format!(
                 "Unable to write content to path '{}'.",
-                &output_path.display()
+                output_path.display()
             ),
             &e.to_string(),
         )
