@@ -10,7 +10,7 @@ edition = "2024"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
-tera = { version = "2", features = ["glob_fs"] }
+tera = { version = "2" }
 tera-contrib = { version = "0.2", features = [
     "base64",
     "date",
@@ -29,6 +29,7 @@ walkdir = "2"
 [dev-dependencies]
 insta = { version = "1", features = ["yaml"] }
 rstest = "0.27.0"
+tempfile = "3.27.0"
 
 [profile.dev]
 opt-level = 1

@@ -6,6 +6,9 @@ pub fn handle(
     use_input_terminal: bool,
     use_output_terminal: bool,
 ) -> Result<(), String> {
+    let library: Vec<(String, String)> =
+        args.library.iter().flatten().cloned().collect();
+
     match (&args, use_input_terminal, use_output_terminal) {
         (cli::Args { skeleton_config: Some(_), .. }, false, _) => error_action(
             "Unable to decide between skeleton and standard input.",
@@ -14,39 +17,25 @@ pub fn handle(
             error_action("Unable to decide between file and standard input.")?
         }
         (
-            cli::Args {
-                skeleton_config: Some(skeleton_config),
-                library_dir,
-                ..
-            },
+            cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
             true,
         ) => render_skeleton(
-            library_dir.as_deref(),
+            &library,
             skeleton_config,
             &args.output_path,
             &args.inputs,
         )?,
         (
-            cli::Args {
-                skeleton_config: Some(skeleton_config),
-                library_dir,
-                ..
-            },
+            cli::Args { skeleton_config: Some(skeleton_config), .. },
             true,
             false,
-        ) => skeleton_to_stdout(
-            library_dir.as_deref(),
-            skeleton_config,
-            &args.inputs,
-        )?,
-        (
-            cli::Args { file_path: Some(file_path), library_dir, .. },
-            true,
-            _,
-        ) => file_to_stdout(library_dir.as_deref(), file_path, &args.inputs)?,
-        (cli::Args { skeleton_config: None, library_dir, .. }, ..) => {
-            stdin_to_stdout(library_dir.as_deref(), &args.inputs)?
+        ) => skeleton_to_stdout(&library, skeleton_config, &args.inputs)?,
+        (cli::Args { file_path: Some(file_path), .. }, true, _) => {
+            file_to_stdout(&library, file_path, &args.inputs)?
+        }
+        (cli::Args { skeleton_config: None, .. }, ..) => {
+            stdin_to_stdout(&library, &args.inputs)?
         }
     }
 
@@ -54,7 +43,7 @@ pub fn handle(
 }
 
 pub fn render_skeleton(
-    library_dir: Option<&Path>,
+    library: &Vec<(String, String)>,
     config: &config::Config,
     output_path: &Path,
     inputs: &[(String, String)],
@@ -65,7 +54,7 @@ pub fn render_skeleton(
         adapters::file_finder(&config.template_directory),
         |path| {
             adapters::skeleton_file_reader(
-                library_dir,
+                library,
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
@@ -86,7 +75,7 @@ pub fn render_skeleton(
 }
 
 pub fn skeleton_to_stdout(
-    library_dir: Option<&Path>,
+    library: &Vec<(String, String)>,
     config: &config::Config,
     inputs: &[(String, String)],
 ) -> Result<(), String> {
@@ -96,7 +85,7 @@ pub fn skeleton_to_stdout(
         adapters::file_finder(&config.template_directory),
         |path| {
             adapters::skeleton_file_reader(
-                library_dir,
+                library,
                 path,
                 &cleaned_inputs,
                 &config.template_directory,
@@ -117,13 +106,13 @@ pub fn skeleton_to_stdout(
 }
 
 pub fn file_to_stdout(
-    library_dir: Option<&Path>,
+    library: &Vec<(String, String)>,
     path: &Path,
     inputs: &[(String, String)],
 ) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            adapters::file_reader(library_dir, path, inputs)
+            adapters::file_reader(library, path, inputs)
                 .map_err(usecases::render_text::Error)
         },
         |content| {
@@ -144,12 +133,12 @@ pub fn error_action(message: &str) -> Result<(), String> {
 }
 
 pub fn stdin_to_stdout(
-    library_dir: Option<&Path>,
+    library: &Vec<(String, String)>,
     inputs: &[(String, String)],
 ) -> Result<(), String> {
     usecases::render_text::execute(
         || {
-            let text = adapters::text_reader(library_dir, inputs)
+            let text = adapters::text_reader(library, inputs)
                 .map_err(usecases::render_text::Error)?;
             Ok(text)
         },

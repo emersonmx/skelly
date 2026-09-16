@@ -9,11 +9,11 @@ const INPUT_TEMPLATE_NAME: &str = "__input_template";
 pub struct Error(pub String);
 
 pub fn render(
-    library_dir: Option<&str>,
+    library: &Vec<(String, String)>,
     template: &str,
     inputs: &[(String, String)],
 ) -> Result<String, Error> {
-    let tera = new_tera(library_dir, template)?;
+    let tera = new_tera(library, template)?;
 
     let data: HashMap<String, String> =
         inputs.iter().map(|i| (i.0.to_owned(), i.1.to_owned())).collect();
@@ -46,7 +46,10 @@ pub fn render(
     }
 }
 
-fn new_tera(library_dir: Option<&str>, template: &str) -> Result<Tera, Error> {
+fn new_tera(
+    library: &Vec<(String, String)>,
+    template: &str,
+) -> Result<Tera, Error> {
     let mut tera = Tera::default();
 
     tera.autoescape_on(Vec::<&str>::new());
@@ -61,8 +64,8 @@ fn new_tera(library_dir: Option<&str>, template: &str) -> Result<Tera, Error> {
     register_slug(&mut tera);
     register_urlencode(&mut tera);
 
-    if let Some(dir) = library_dir {
-        tera.load_from_glob(&format!("{dir}/**/*")).map_err(|e| {
+    for (library_name, library_content) in library {
+        tera.add_raw_template(library_name, library_content).map_err(|e| {
             let message =
                 e.source().map(|s| s.to_string()).unwrap_or(e.to_string());
             Error(message)
@@ -140,7 +143,7 @@ mod tests {
 
     #[rstest]
     fn return_same() {
-        let result = render(None, "test", &[]);
+        let result = render(&vec![], "test", &[]);
 
         assert_eq!("test", result.unwrap());
     }
@@ -148,7 +151,7 @@ mod tests {
     #[rstest]
     fn render_with_input() {
         let result = render(
-            None,
+            &vec![],
             "Hello {{ name }}",
             &[("name".to_owned(), "John".to_owned())],
         );
@@ -158,7 +161,7 @@ mod tests {
 
     #[rstest]
     fn error_when_missing_input() {
-        let result = render(None, "Hello {{ name }}", &[]);
+        let result = render(&vec![], "Hello {{ name }}", &[]);
 
         assert_yaml_snapshot!(format!("{:?}", result.unwrap_err().0));
     }
