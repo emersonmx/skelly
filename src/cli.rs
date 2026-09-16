@@ -282,24 +282,26 @@ mod tests {
         let basename =
             temp_test_dir.path().file_name().unwrap().to_str().unwrap();
         let tmp_dir = temp_test_dir.path().to_str().unwrap();
-        let files = [
+        let mut files = [
             ("file1.txt", "content1"),
             ("file2.txt", "content2"),
             ("file3.txt", "content3"),
         ];
+        files.sort_by(|a, b| a.0.cmp(b.0));
+
         for (file_name, content) in &files {
             let file_path = Path::new(tmp_dir).join(file_name);
             std::fs::write(&file_path, content)
                 .expect("Failed to write to test file");
         }
 
-        let result = parse_library(tmp_dir).unwrap();
+        let mut result = parse_library(tmp_dir).unwrap();
+        result.sort_by(|a, b| a.0.cmp(&b.0));
 
         assert_eq!(
             result,
             files
                 .iter()
-                .rev()
                 .map(|(name, content)| (
                     format!("{basename}/{name}"),
                     content.to_string()
@@ -333,24 +335,26 @@ mod tests {
         let temp_test_dir =
             tempdir().expect("Failed to create temporary directory");
         let tmp_dir = temp_test_dir.path().to_str().unwrap();
-        let files = [
+        let mut files = [
             ("file1.txt", "content1"),
             ("file2.txt", "content2"),
             ("file3.txt", "content3"),
         ];
+        files.sort_by(|a, b| a.0.cmp(b.0));
+
         for (file_name, content) in &files {
             let file_path = Path::new(tmp_dir).join(file_name);
             std::fs::write(&file_path, content)
                 .expect("Failed to write to test file");
         }
 
-        let result = parse_library(&format!("kvtest={tmp_dir}")).unwrap();
+        let mut result = parse_library(&format!("kvtest={tmp_dir}")).unwrap();
+        result.sort_by(|a, b| a.0.cmp(&b.0));
 
         assert_eq!(
             result,
             files
                 .iter()
-                .rev()
                 .map(|(name, content)| (
                     format!("kvtest/{name}"),
                     content.to_string()
