@@ -138,8 +138,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
-    #[test]
+    #[rstest]
     fn verify_args() {
         use clap::CommandFactory;
         Args::command().debug_assert()

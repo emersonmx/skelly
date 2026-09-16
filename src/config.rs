@@ -87,9 +87,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
+    use rstest::rstest;
+    use std::str::FromStr;
 
     impl FromStr for Config {
         type Err = Error;
@@ -106,7 +106,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[rstest]
     fn parse_from_string() {
         let config = Config::from_str(
             r#"
@@ -129,7 +129,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[rstest]
     fn convert_default_field_to_string() {
         let config = Config::from_str(
             r#"
@@ -153,7 +153,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[rstest]
     fn convert_options_field_to_a_string_vector() {
         let config = Config::from_str(
             r#"

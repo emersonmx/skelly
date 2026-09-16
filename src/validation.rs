@@ -88,9 +88,9 @@ fn check_for_missing_inputs(
 
 #[cfg(test)]
 mod tests {
-    use crate::config::Input;
-
     use super::*;
+    use crate::config::Input;
+    use rstest::rstest;
 
     fn make_config_inputs() -> Vec<Input> {
         vec![Input {
@@ -100,7 +100,7 @@ mod tests {
         }]
     }
 
-    #[test]
+    #[rstest]
     fn return_default_when_empty_user_inputs() {
         let input_map = make_config_inputs();
 
@@ -109,7 +109,7 @@ mod tests {
         assert_eq!(result, Ok(vec![("test".to_owned(), "ok".to_owned())]));
     }
 
-    #[test]
+    #[rstest]
     fn return_user_input_over_default() {
         let input_map = make_config_inputs();
 
@@ -121,7 +121,7 @@ mod tests {
         assert_eq!(result, Ok(vec![("test".to_owned(), "updated".to_owned())]));
     }
 
-    #[test]
+    #[rstest]
     fn ignore_unknown_inputs() {
         let input_map = make_config_inputs();
 
@@ -133,7 +133,7 @@ mod tests {
         assert_eq!(result, Ok(vec![("test".to_owned(), "ok".to_owned())]));
     }
 
-    #[test]
+    #[rstest]
     fn ignore_empty_options_list() {
         let config_inputs = vec![Input {
             name: "test".to_owned(),
@@ -149,7 +149,7 @@ mod tests {
         assert_eq!(result, Ok(vec![("test".to_owned(), "invalid".to_owned())]),);
     }
 
-    #[test]
+    #[rstest]
     fn return_error_when_missing_input() {
         let config_inputs = vec![Input {
             name: "test".to_owned(),
@@ -163,7 +163,7 @@ mod tests {
         assert_eq!(got, want);
     }
 
-    #[test]
+    #[rstest]
     fn return_error_when_input_is_not_a_valid_option() {
         let config_inputs = vec![Input {
             name: "test".to_owned(),

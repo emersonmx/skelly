@@ -136,15 +136,16 @@ fn register_urlencode(tera: &mut Tera) {
 mod tests {
     use super::*;
     use insta::assert_yaml_snapshot;
+    use rstest::rstest;
 
-    #[test]
+    #[rstest]
     fn return_same() {
         let result = render(None, "test", &[]);
 
         assert_eq!("test", result.unwrap());
     }
 
-    #[test]
+    #[rstest]
     fn render_with_input() {
         let result = render(
             None,
@@ -155,7 +156,7 @@ mod tests {
         assert_eq!("Hello John", result.unwrap());
     }
 
-    #[test]
+    #[rstest]
     fn error_when_missing_input() {
         let result = render(None, "Hello {{ name }}", &[]);
 
