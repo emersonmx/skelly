@@ -47,7 +47,7 @@ pub struct Args {
     #[arg(
         short,
         long("library"),
-        value_name = "PATH | NAME=PATH",
+        value_name = "PATH|NAME=PATH",
         value_parser = parse_library,
     )]
     pub library: Vec<Vec<(String, String)>>,
